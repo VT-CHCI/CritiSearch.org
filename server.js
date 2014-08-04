@@ -92,10 +92,24 @@ google.resultsPerPage = 25;
     console.log(msg.data);
   });
 
-  socket.on('q', function(data) {
-    console.log(data.q);
-    google(data.q, function(err, next, results){
-      socket.emit('search-results', results);
+  function getProcessedResults (results) {
+    var resultsToSend = [];
+    for (var i=0; i<results.length; i++) {
+      if (results[i].hasOwnProperty('title') && results[i].title.length > 0) {
+        resultsToSend.push(results[i]);
+      }
+      // for now just remove these
+      //if results[i].title == Images for... && results[i].link == null
+      //   make a image search of google, and send back the picture data
+    }
+    return resultsToSend;
+  }
+
+  socket.on('q', function(q) {
+    console.log(q);
+    google(q, function(err, next, results){
+      
+      socket.emit('search-results', getProcessedResults(results));
     });
   });
 

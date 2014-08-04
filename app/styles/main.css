@@ -79,3 +79,19 @@ body {
 }
 
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+.search-result:hover {
+  border: 2px solid #428bca;
+}
+
+.promoted {
+  background-color: green;
+}
+
+.demoted {
+  background-color: red;
+}
+
+input.main-search-query {
+  width: 100%;
+}

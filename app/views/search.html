@@ -1,11 +1,11 @@
-<form class="form-inline" role="form" ng-submit="search()">
-  <label class="sr-only" for="search-query">Search Query</label>
-    <input type="text" class="form-control" id="search-query" placeholder="Search Query" ng-model="queryInProgress">
-</form>
-
-<ol class="search-results">
-  <li class="search-result" ng-repeat="result in results">
-    <a ng-href="{{result.link}}">{{result.title}}</a>
-    <p>{{result.description}}</p>
-  </li>
-</ol>
+<div class="row">
+  <div class="col-md-1"></div>
+  <div class="col-md-10">
+    <form class="form-inline" role="form" ng-submit="search()">
+      <label class="sr-only" for="search-query">Search Query</label>
+        <input type="text" class="input-lg form-control main-search-query" id="search-query" placeholder="Search Query" ng-model="queryInProgress" size="100">
+    </form>
+    <search-results results="results"></search-results>
+  </div>
+  <div class="col-md-1"></div>
+</div>

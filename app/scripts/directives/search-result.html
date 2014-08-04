@@ -1,0 +1,8 @@
+<li class="search-result">
+  <a ng-href="{{result.link}}">{{result.title}}</a>
+  <p>{{result.description}}</p>
+  <!-- Indicates a successful or positive action -->
+  <button type="button" class="btn btn-success" ng-click="promote(result)">Success <i class="glyphicon glyphicon-thumbs-up"></i></button>
+  <!-- Indicates a dangerous or potentially negative action -->
+  <button type="button" class="btn btn-danger" ng-click="demote(result)">Danger</button>
+</li>

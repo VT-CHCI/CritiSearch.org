@@ -12,7 +12,7 @@ angular.module('angularSocketNodeApp')
     $scope.search = function() {
       console.log($scope.queryInProgress, $scope.query);
       $scope.query = $scope.queryInProgress;
-      theSocket.emit('q', {q:$scope.query});
+      theSocket.emit('q', $scope.query);
     };
 
     theSocket.on('search-results', function(data) {
