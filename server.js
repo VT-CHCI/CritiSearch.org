@@ -3,6 +3,10 @@ var app = express();
 // var pg = require('pg');  //Commented out until database implementation
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var google = require('google');
+
+google.resultsPerPage = 25;
+// var nextCounter = 0;
 
 //-------------------------------------------------------------------------
 /**
@@ -86,6 +90,13 @@ var io = require('socket.io')(http);
 
   socket.on('info-for-server', function(msg) {
     console.log(msg.data);
+  });
+
+  socket.on('q', function(data) {
+    console.log(data.q);
+    google(data.q, function(err, next, results){
+      socket.emit('search-results', results);
+    });
   });
 
   /**
