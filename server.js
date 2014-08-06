@@ -8,6 +8,17 @@ var google = require('google');
 google.resultsPerPage = 25;
 // var nextCounter = 0;
 
+var mysql      = require('mysql');
+var connection = mysql.createConnection({
+  host     : 'localhost',
+  user     : 'critisearch',
+  password : 'asdfjklj',
+  database : 'critisearch'
+});
+
+connection.connect();
+// connection.end();
+
 //-------------------------------------------------------------------------
 /**
  *  The server file for the ThoughtSwap app, handles client interaction
@@ -67,6 +78,28 @@ google.resultsPerPage = 25;
  */
  io.sockets.on('connection', function (socket) {
   console.log('>> Client Connected  >> ');
+  var connectionInfo = {};
+
+  var addClientQuery = 'insert into client (socket, connect) values (?, ?)';
+  connection.query(addClientQuery, [socket.id, new Date()], function(error, results){
+    console.log(error);
+    console.log(results);
+    if (results.hasOwnProperty('insertId')) {
+      connectionInfo['dbId'] = results.insertId;
+    }
+  });
+
+
+
+  //
+  // SQL:
+  // add info: insert into TABLENAME (col1, col2) values (val1, val2);
+  // update info: update TABLENAME set col1=val1, col2=val2 where id=3
+  // find info: select col1, col2 from TABLENAME where CLAUSE
+  // find info: select * from TABLENAME where CLAUSE
+  // 
+  // 
+  // 
   // if (io.nsps['/'].adapter.rooms.hasOwnProperty('student')) {
   //   console.log('>> Client Connected  >> ', 
   //      Object.keys(io.nsps['/'].adapter.rooms['student']).length);
@@ -81,6 +114,11 @@ google.resultsPerPage = 25;
    */
   socket.on('disconnect', function () {
     console.log('<< Client Disconnected << ');
+
+    var addClientQuery = 'insert into client (socket, disconnect) values (?, ?)';
+    connection.query(addClientQuery, [socket.id, new Date()], function(error, results){
+    console.log(error);
+    console.log(results);
     // if (io.nsps['/'].adapter.rooms.hasOwnProperty('student')) {
       
     //   socket.broadcast.emit('num-students', 
@@ -95,8 +133,16 @@ google.resultsPerPage = 25;
   function getProcessedResults (results) {
     var resultsToSend = [];
     for (var i=0; i<results.length; i++) {
-      if (results[i].hasOwnProperty('title') && results[i].title.length > 0) {
+      if (results[i].hasOwnProperty('link') && results[i].title.length > 0) {
+        results[i].status = 0;
         resultsToSend.push(results[i]);
+      }
+
+      if (results[i].title.substr(0, 11) === "Images for "
+        || results[i].title.substr(0, 9) === "News for "
+        || results[i].title.substr(0, 8) === "Map for ") {
+        console.log("Item removed: " + results[i].title);
+        resultsToSend.pop();
       }
       // for now just remove these
       //if results[i].title == Images for... && results[i].link == null
@@ -111,6 +157,37 @@ google.resultsPerPage = 25;
       
       socket.emit('search-results', getProcessedResults(results));
     });
+  });
+
+  socket.on('sort', function(things) {
+
+    console.log("In the server sorting");
+    var comparisons = 0,
+    swaps = 0,
+    endIndex = 0,
+    len = things.length - 1;
+ 
+    for (var i = 0; i < len; i++) {
+ 
+        for (var j = 0, swapping, endIndex = len - i; j < endIndex; j++) {
+            comparisons++;
+ 
+            if (things[j].status < things[j + 1].status) {
+         
+                swapping = things[j];
+ 
+                things[j] = things[j + 1];
+                things[j + 1] = swapping;
+ 
+                swaps++;
+            };
+        };
+    }
+ 
+    console.log("Comparisons: " + comparisons);
+    console.log("Swaps: " + swaps);
+                 
+    socket.emit('sort-results', getProcessedResults(things));
   });
 
   /**
