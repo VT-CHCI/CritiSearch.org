@@ -71,6 +71,39 @@ connection.connect();
 
 //-------------------------------------------------------------------------
 
+function getProcessedResults (results) {
+  var resultsToSend = [];
+  for (var i=0; i<results.length; i++) {
+    if (results[i].hasOwnProperty('link') && results[i].title.length > 0) {
+      results[i].status = 0;
+      resultsToSend.push(results[i]);
+    }
+
+    var images  = "Images for ";
+    var news = "News for ";
+    var maps = "Map for ";
+    var youtube = "http://www.youtube.com/watch?v=";
+
+
+    if (results[i].title.substr(0, images.length) == images
+      || results[i].title.substr(0, news.length) == news
+      || results[i].title.substr(0, maps.length) == maps) {
+      console.log("Item removed: " + results[i].title);
+      resultsToSend.pop();
+    } else if (results[i].hasOwnProperty('link') && results[i].link != null){
+      console.log(results[i].link);
+      console.log(results[i].link==null);
+      console.log(results[i].link!=null);
+    if (results[i].link.substr(0, youtube.length) == youtube) {
+      results[i].description = "Youtube link";
+    }}
+    // for now just remove these
+    //if results[i].title == Images for... && results[i].link == null
+    //   make a image search of google, and send back the picture data
+  }
+  return resultsToSend;
+}
+
 /**
  * ~~ Activity ~~
  * The main functions of the server, listening for events on the client
@@ -115,10 +148,11 @@ connection.connect();
   socket.on('disconnect', function () {
     console.log('<< Client Disconnected << ');
 
-    var addClientQuery = 'insert into client (socket, disconnect) values (?, ?)';
-    connection.query(addClientQuery, [socket.id, new Date()], function(error, results){
+    var addDisconnectTime = 'update client set disconnect = ? where id = ?';
+    connection.query(addDisconnectTime, [new Date(), connectionInfo.dbId], function(error, results){
     console.log(error);
     console.log(results);
+  });
     // if (io.nsps['/'].adapter.rooms.hasOwnProperty('student')) {
       
     //   socket.broadcast.emit('num-students', 
@@ -130,32 +164,42 @@ connection.connect();
     console.log(msg.data);
   });
 
-  function getProcessedResults (results) {
-    var resultsToSend = [];
-    for (var i=0; i<results.length; i++) {
-      if (results[i].hasOwnProperty('link') && results[i].title.length > 0) {
-        results[i].status = 0;
-        resultsToSend.push(results[i]);
-      }
-
-      if (results[i].title.substr(0, 11) === "Images for "
-        || results[i].title.substr(0, 9) === "News for "
-        || results[i].title.substr(0, 8) === "Map for ") {
-        console.log("Item removed: " + results[i].title);
-        resultsToSend.pop();
-      }
-      // for now just remove these
-      //if results[i].title == Images for... && results[i].link == null
-      //   make a image search of google, and send back the picture data
-    }
-    return resultsToSend;
-  }
-
   socket.on('q', function(q) {
     console.log(q);
+
+    var newQuery = 'insert into query (query, searcher, time) values (?, ?, ?)';
+    console.log(q, connectionInfo.dbId, new Date());
+    connection.query(newQuery, [q, connectionInfo.dbId, new Date()], function(error, results){
+      console.log(error);
+      console.log(results);
+      if (results.hasOwnProperty('insertId')) {
+        connectionInfo['currentQuery'] = results.insertId;
+      }
+    });
+
     google(q, function(err, next, results){
+
+      var processedResults = getProcessedResults(results);
       
-      socket.emit('search-results', getProcessedResults(results));
+      socket.emit('search-results', processedResults);
+
+      for (resultIndex in processedResults) {
+        console.log([processedResults[resultIndex].link, 
+            processedResults[resultIndex].description, 
+            parseInt(resultIndex), 
+            connectionInfo.currentQuery, 
+            processedResults[resultIndex].title]);
+        var newQuery = 'insert into result (link, description, order, query, title) values (?, ?, ?, ?, ?)';
+        connection.query(newQuery, [processedResults[resultIndex].link, 
+            processedResults[resultIndex].description, 
+            resultIndex, 
+            connectionInfo.currentQuery, 
+            processedResults[resultIndex].title], function(error, results){
+          console.log(error);
+          console.log(results);
+        });
+      }
+
     });
   });
 
