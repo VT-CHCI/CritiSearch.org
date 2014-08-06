@@ -79,3 +79,36 @@ body {
 }
 
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+.main-search-query {
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.search-result {
+  border: 2px solid transparent;
+  border-radius: 7px;
+  padding: 10px;
+  margin: 3px;
+}
+
+.search-result:hover {
+  border: 2px solid #428bca;
+}
+
+.promoted {
+  background-color: #8FFF92;
+}
+
+.demoted {
+  background-color: #FF8F92;
+}
+
+input.main-search-query {
+  width: 100%;
+}
+
+.like_dislike {
+  float: right;
+  margin: -10px;
+}

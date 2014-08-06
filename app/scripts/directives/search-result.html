@@ -1,0 +1,8 @@
+<li class="search-result" ng-mouseenter="showButtons()" ng-mouseleave="showButtons()">
+	<div class="like_dislike btn-group-vertical" style="display:none">
+		<div class="btn-group btn-group-sm"><button type="button" class="btn btn-success" ng-click="promote(result)"><i class="glyphicon glyphicon-thumbs-up"></i></button></div>
+  		<div class="btn-group btn-group-sm"><button type="button" class="btn btn-danger" ng-click="demote(result)"><i class="glyphicon glyphicon-thumbs-down"></i></button></div>
+	</div>
+  <a ng-href="{{result.link}}" target="_blank">{{result.title}}</a>
+  <p>{{result.description}}</p>
+</li>
