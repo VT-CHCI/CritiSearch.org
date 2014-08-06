@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "dependencies": {
     "express": "^4.7.2",
+    "google": "^0.3.4",
+    "mysql": "^2.4.2",
     "socket.io": "^1.0.6"
   },
   "devDependencies": {
