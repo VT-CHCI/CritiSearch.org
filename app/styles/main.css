@@ -112,3 +112,9 @@ input.main-search-query {
   float: right;
   margin: -10px;
 }
+
+.critisort {
+  position: fixed;
+  top: 20;
+  right: 20;
+}
