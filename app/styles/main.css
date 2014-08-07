@@ -102,6 +102,11 @@ body {
 
 .demoted {
   background-color: #FF8F92;
+  color: #969696;
+}
+
+.demoted a:link {
+  color: #808080;
 }
 
 input.main-search-query {
