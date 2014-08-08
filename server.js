@@ -92,11 +92,10 @@ function getProcessedResults (results) {
       resultsToSend.pop();
     } else if (results[i].hasOwnProperty('link') && results[i].link != null){
       console.log(results[i].link);
-      console.log(results[i].link==null);
-      console.log(results[i].link!=null);
-    if (results[i].link.substr(0, youtube.length) == youtube) {
-      results[i].description = "Youtube link";
-    }}
+      if (results[i].link.substr(0, youtube.length) == youtube) {
+        results[i].description = "Youtube link";
+      }
+    }
     // for now just remove these
     //if results[i].title == Images for... && results[i].link == null
     //   make a image search of google, and send back the picture data
@@ -183,18 +182,15 @@ function getProcessedResults (results) {
       
       socket.emit('search-results', processedResults);
 
-      for (resultIndex in processedResults) {
-        console.log([processedResults[resultIndex].link, 
-            processedResults[resultIndex].description, 
-            parseInt(resultIndex), 
+      for (var x = 0; x < processedResults.length; x++) {
+        
+        var newResult = 'insert into result (link, description, result_order, query, title) values (?, ?, ?, ?, ?)';
+
+        connection.query(newResult, [processedResults[x].link, 
+            processedResults[x].description, 
+            x, 
             connectionInfo.currentQuery, 
-            processedResults[resultIndex].title]);
-        var newQuery = 'insert into result (link, description, order, query, title) values (?, ?, ?, ?, ?)';
-        connection.query(newQuery, [processedResults[resultIndex].link, 
-            processedResults[resultIndex].description, 
-            resultIndex, 
-            connectionInfo.currentQuery, 
-            processedResults[resultIndex].title], function(error, results){
+            processedResults[x].title], function(error, results){
           console.log(error);
           console.log(results);
         });
@@ -206,30 +202,7 @@ function getProcessedResults (results) {
   socket.on('sort', function(things) {
 
     console.log("In the server sorting");
-    var comparisons = 0,
-    swaps = 0,
-    endIndex = 0,
-    len = things.length - 1;
- 
-    for (var i = 0; i < len; i++) {
- 
-        for (var j = 0, swapping, endIndex = len - i; j < endIndex; j++) {
-            comparisons++;
- 
-            if (things[j].status < things[j + 1].status) {
-         
-                swapping = things[j];
- 
-                things[j] = things[j + 1];
-                things[j + 1] = swapping;
- 
-                swaps++;
-            };
-        };
-    }
- 
-    console.log("Comparisons: " + comparisons);
-    console.log("Swaps: " + swaps);
+    
                  
     socket.emit('sort-results', getProcessedResults(things));
   });
