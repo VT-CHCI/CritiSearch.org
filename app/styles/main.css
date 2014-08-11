@@ -128,3 +128,20 @@ input.main-search-query {
   top: 20;
   right: 20;
 }
+
+.teacher-queries {
+  border: 1px solid black;
+  border-radius: 10px;
+  min-height: 500px;
+  padding:20px;
+}
+
+.student-query {
+  list-style-type: none;
+  border-radius: 8px;
+  background-color: lightgray;
+  padding: 5px;
+  margin: 3px;
+  width: 50%;
+  text-align: center;
+}

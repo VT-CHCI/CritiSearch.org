@@ -9,19 +9,23 @@ angular.module('angularSocketNodeApp')
     $scope.results = [];
     var searchScope = $scope;
 
+    $scope.searchSubmitted = function() {
+      $scope.query = $scope.queryInProgress;
+      $location.path('/search/' + $scope.query);      
+    };
+
     $scope.search = function() {
       console.log($scope.queryInProgress, $scope.query);
-      $scope.query = $scope.queryInProgress;
       theSocket.emit('q', $scope.query);
-      $location.path('/search/' + $scope.query);
     };
-    
-    console.log($routeParams.query);
-    if ($routeParams.hasOwnProperty('query') && $routeParams.query.length > 0) {
+
+    console.log("routeParams: ", $routeParams.query);
+    if ($routeParams.hasOwnProperty('query') 
+        && $routeParams.query.length > 0) {
       $scope.queryInProgress = $routeParams.query;
+      $scope.query = $scope.queryInProgress;
       $scope.search();
     }
-    
 
     $scope.critiSort = function() {
       console.log("sorting");
@@ -54,7 +58,7 @@ angular.module('angularSocketNodeApp')
     }
 
     theSocket.on('search-results', function(data) {
-      console.log(data);
+
       searchScope.results = data;
     });
 

@@ -159,12 +159,22 @@ function getProcessedResults (results) {
     // }
   });
 
+  socket.on('teacher', function() {
+    console.log('Teacher Joined')
+    socket.join('teacher');
+    var oldResults = 'SELECT * FROM query where time > date_sub(now(),INTERVAL 90 MINUTE) order by time desc;';
+    connection.query(oldResults, function(error, results) {
+      socket.emit('oldQueries', results);
+    });
+  });
+
   socket.on('info-for-server', function(msg) {
     console.log(msg.data);
   });
 
   socket.on('q', function(q) {
-    console.log(q);
+
+    socket.broadcast.to('teacher').emit('query', q);
 
     var newQuery = 'insert into query (query, searcher, time) values (?, ?, ?)';
     console.log(q, connectionInfo.dbId, new Date());
@@ -176,7 +186,7 @@ function getProcessedResults (results) {
       }
     });
 
-    google(q, function(err, next, results){
+    google(q, function(err, next, results) {
 
       var processedResults = getProcessedResults(results);
       
@@ -197,14 +207,6 @@ function getProcessedResults (results) {
       }
 
     });
-  });
-
-  socket.on('sort', function(things) {
-
-    console.log("In the server sorting");
-    
-                 
-    socket.emit('sort-results', getProcessedResults(things));
   });
 
   /**

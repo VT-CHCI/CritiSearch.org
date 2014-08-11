@@ -49,6 +49,18 @@ angular
         templateUrl: 'views/search.html',
         controller: 'SearchCtrl'
       })
+      .when('/teacher', {
+        templateUrl: 'views/teacher.html',
+        controller: 'TeacherCtrl'
+      })
+      .when('/signin', {
+        templateUrl: 'views/signin.html',
+        controller: 'SignInCtrl'
+      })
+      .when('/login', {
+        templateUrl: 'views/login.html',
+        controller: 'LogInCtrl'
+      })
       .otherwise({
         redirectTo: '/search'
       });
