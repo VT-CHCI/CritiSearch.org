@@ -37,7 +37,7 @@ connection.connect();
  */
   app.use(express.static(__dirname + '/app'));
 
-  var port = 3007;
+  var port = 3017;
   http.listen(port, function (){
     console.log('listening on *:', port);
   });
