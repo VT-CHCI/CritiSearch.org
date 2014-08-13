@@ -17,7 +17,8 @@ angular
     'ngSanitize',
     'ngTouch',
     'ui.bootstrap',
-    'btford.socket-io'
+    'btford.socket-io',
+    'angular-md5'
   ])
 
   .factory('theSocket', function (socketFactory) {
@@ -53,9 +54,9 @@ angular
         templateUrl: 'views/teacher.html',
         controller: 'TeacherCtrl'
       })
-      .when('/signin', {
-        templateUrl: 'views/signin.html',
-        controller: 'SignInCtrl'
+      .when('/signup', {
+        templateUrl: 'views/signup.html',
+        controller: 'SignUpCtrl'
       })
       .when('/login', {
         templateUrl: 'views/login.html',

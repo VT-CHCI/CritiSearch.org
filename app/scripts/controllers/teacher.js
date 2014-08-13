@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('TeacherCtrl', function ($scope, theSocket, $routeParams) {
+  .controller('TeacherCtrl', function ($scope, theSocket, $routeParams, $location) {
     console.log($routeParams);
 
     theSocket.emit('teacher');
@@ -16,6 +16,6 @@ angular.module('angularSocketNodeApp')
 
     theSocket.on('oldQueries', function(data) {
     	searchScope.queries = searchScope.queries.concat(data);
-    })
+    });
 
 });

@@ -138,10 +138,10 @@ input.main-search-query {
 
 .student-query {
   list-style-type: none;
+  display: block;
   border-radius: 8px;
-  background-color: lightgray;
+  background-color: #FFCC33;
   padding: 5px;
   margin: 3px;
-  width: 50%;
   text-align: center;
 }
