@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('SignUpCtrl', function ($scope, md5, theSocket, $routeParams, $location) {
+  .controller('SignUpCtrl', function ($scope, User, md5, theSocket, $routeParams, $location) {
     console.log($routeParams);
 
     //nothing yet
@@ -18,9 +18,6 @@ angular.module('angularSocketNodeApp')
 
     theSocket.on('userAdded', function(results) {
     	if (results) {
-
-    		//make current session have a teacher???
-    		//something like that
 
       		$location.path('/teacher');
     	} else {

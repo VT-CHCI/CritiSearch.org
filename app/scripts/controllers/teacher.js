@@ -1,10 +1,21 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('TeacherCtrl', function ($scope, theSocket, $routeParams, $location) {
+  .controller('TeacherCtrl', function ($scope, User, theSocket, $routeParams, $location) {
     console.log($routeParams);
+    $scope.userService = User;
 
-    theSocket.emit('teacher');
+    console.log(User.teacherLoggedIn());
+    if (User.teacherLoggedIn()) {
+      theSocket.emit('teacher');
+    } else {
+      console.log("Not logged in");
+      $location.path('/login/teacher');
+    }
+
+    $scope.logOut = function() {
+      User.logOutTeacher();
+    }
 
     $scope.queries = [];
     var searchScope = $scope;

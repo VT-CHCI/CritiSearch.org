@@ -76,6 +76,44 @@ function getProcessedResults (results) {
   return resultsToSend;
 }
 
+//got the lists for this from: http://stackoverflow.com/q/16826200/1449799
+ 
+function getName() {
+  var firstName = ["Runny", "Buttercup", "Dinky", "Stinky", "Crusty",
+  "Greasy","Gidget", "Cheesypoof", "Lumpy", "Wacky", "Tiny", "Flunky",
+  "Fluffy", "Zippy", "Doofus", "Gobsmacked", "Slimy", "Grimy", "Salamander",
+  "Oily", "Burrito", "Bumpy", "Loopy", "Snotty", "Irving", "Egbert", "Waffer", "Lilly","Rugrat","Sand", "Fuzzy","Kitty",
+   "Puppy", "Snuggles","Rubber", "Stinky", "Lulu", "Lala", "Sparkle", "Glitter",
+   "Silver", "Golden", "Rainbow", "Butt", "Rain", "Stormy", "Wink", "Sugar",
+   "Twinkle", "Star", "Halo", "Angel"];
+ 
+  // var middleName =["Waffer", "Lilly","Rugrat","Sand", "Fuzzy","Kitty",
+  //  "Puppy", "Snuggles","Rubber", "Stinky", "Lulu", "Lala", "Sparkle", "Glitter",
+  //  "Silver", "Golden", "Rainbow", "Butt", "Rain", "Stormy", "Wink", "Sugar",
+  //  "Twinkle", "Star", "Halo", "Angel"];
+ 
+  var lastName1 = ["Snicker", "Buffalo", "Gross", "Bubble", "Sheep",
+   "Corset", "Toilet", "Lizard", "Waffle", "Kumquat", "Burger", "Chimp", "Liver",
+   "Gorilla", "Rhino", "Emu", "Pizza", "Toad", "Gerbil", "Pickle", "Tofu", 
+  "Chicken", "Potato", "Hamster", "Lemur", "Vermin"];
+ 
+  var lastName2 = ["face", "dip", "nose", "brain", "head", "breath", 
+  "pants", "shorts", "lips", "mouth", "muffin", "butt", "bottom", "elbow", 
+  "honker", "toes", "buns", "spew", "kisser", "fanny", "squirt", "chunks", 
+  "brains", "wit", "juice", "shower"];
+ 
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+ 
+  return [
+    firstName[getRandomInt(0, firstName.length)], 
+    // middleName[getRandomInt(0, middleName.length)], 
+    lastName1[getRandomInt(0, lastName1.length)], 
+    lastName2[getRandomInt(0, lastName2.length)]
+  ];
+}
+
 /**
  * ~~ Activity ~~
  * The main functions of the server, listening for events on the client
@@ -116,7 +154,7 @@ function getProcessedResults (results) {
   socket.on('signup', function(username, password, email) {
     console.log('Database add ' + username + ', ' + password + ', ' + email);
 
-    var usernames = 'select * from user where name=?';
+    var usernames = 'select * from users where name=?';
 
     connection.query(usernames, [username], function(error, results) {
       if (results.length > 0) {
@@ -124,7 +162,7 @@ function getProcessedResults (results) {
       } else if (email != null) {
         var newUser = 'insert into users (name, password, email) values (?, ?, ?)'
         connection.query(newUser, [username, password, email], function(error, results) {
-          socket.emit('userAdded', results);
+          socket.emit('login-teacher-done', {success: true});
         });
       } else {
         console.log("invalid email");
@@ -150,19 +188,34 @@ function getProcessedResults (results) {
    *
    * Handle when someone tries to Log in
    */
-  socket.on('logIn', function(username, password) {
-    console.log('Searching for ' + username + ', ' + password);
+  socket.on('login-teacher', function(details) {
+    console.log('Searching for ' + details.username + ', ' + details.password);
 
     var newUser = 'select * from users where name=?';
-    connection.query(newUser, [username], function(error, results) {
-      var success = false;
-      for (var i = 0; i < results.length; i++) {
-        if (username == results[i].name && password == results[i].password) {
-          success = true;
+    connection.query(newUser, [details.username], function(error, results) {
+      results.success = false;
+        if (details.username == results[0].name && details.password == results[0].password) {
+          results.success = true;
           console.log("User match");
-        }
+          socket.emit('login-teacher-done', {success: true});
       }
-      socket.emit('logIn-done', success);
+    });
+  });
+
+  socket.on('login-student', function(details) {
+    console.log('Searching for ' + details.sillyname);
+
+    var newUser = 'select * from users where name=?';
+    connection.query(newUser, [details.sillyname], function(error, results) {
+      var complete = {
+        success: false
+      }
+      console.log("Looking for " + results[0].name);
+      if (details.sillyname == results[0].name) {
+        complete.success = true;
+        console.log("User match");
+      }
+      socket.emit('login-student-done', complete);
     });
   });
 

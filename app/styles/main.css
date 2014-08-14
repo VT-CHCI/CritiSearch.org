@@ -21,7 +21,7 @@ body {
 .header h3 {
   margin-top: 0;
   margin-bottom: 0;
-  line-height: 40px;
+  line-height: 50px;
   padding-bottom: 19px;
 }
 
@@ -71,7 +71,7 @@ body {
   }
   /* Space out the masthead */
   .header {
-    margin-bottom: 30px;
+    margin-bottom: 50px;
   }
   /* Remove the bottom border on the jumbotron for visual effect */
   .jumbotron {
@@ -84,6 +84,10 @@ body {
 .main-search-query {
   margin-bottom: 10px;
   width: 100%;
+}
+
+.button-nav:hover {
+  background-color: white;
 }
 
 .search-result {
@@ -144,4 +148,8 @@ input.main-search-query {
   padding: 5px;
   margin: 3px;
   text-align: center;
+}
+.register-now {
+  display: inline-block;
+  float: right;
 }

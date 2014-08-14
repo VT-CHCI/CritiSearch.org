@@ -58,9 +58,13 @@ angular
         templateUrl: 'views/signup.html',
         controller: 'SignUpCtrl'
       })
-      .when('/login', {
-        templateUrl: 'views/login.html',
-        controller: 'LogInCtrl'
+      .when('/login/teacher', {
+        templateUrl: 'views/loginteacher.html',
+        controller: 'LogInTeacherCtrl'
+      })
+      .when('/login/student', {
+        templateUrl: 'views/loginstudent.html',
+        controller: 'LogInStudentCtrl'
       })
       .otherwise({
         redirectTo: '/search'

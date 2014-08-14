@@ -1,17 +1,21 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('SearchCtrl', function ($scope, theSocket, $routeParams, $location) {
+  .controller('SearchCtrl', function ($scope, User, theSocket, $routeParams, $location) {
     console.log($routeParams);
     $scope.queryInProgress = '';
     $scope.query = '';
-
+    $scope.loggedIn = User.studentLoggedIn();
     $scope.results = [];
     var searchScope = $scope;
 
     $scope.searchSubmitted = function() {
       $scope.query = $scope.queryInProgress;
       $location.path('/search/' + $scope.query);      
+    };
+
+    $scope.logIn = function() {
+      $location.path('/login/student');
     };
 
     $scope.search = function() {
