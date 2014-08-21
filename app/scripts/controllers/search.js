@@ -2,7 +2,6 @@
 
 angular.module('angularSocketNodeApp')
   .controller('SearchCtrl', function ($scope, User, theSocket, $routeParams, $location) {
-    console.log($routeParams);
     $scope.queryInProgress = '';
     $scope.query = '';
     $scope.loggedIn = User.studentLoggedIn();
@@ -19,11 +18,9 @@ angular.module('angularSocketNodeApp')
     };
 
     $scope.search = function() {
-      console.log($scope.queryInProgress, $scope.query);
       theSocket.emit('q', $scope.query);
     };
 
-    console.log("routeParams: ", $routeParams.query);
     if ($routeParams.hasOwnProperty('query') 
         && $routeParams.query.length > 0) {
       $scope.queryInProgress = $routeParams.query;

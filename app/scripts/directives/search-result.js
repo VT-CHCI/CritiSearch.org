@@ -1,5 +1,5 @@
 'use strict';
-angular.module('angularSocketNodeApp').directive('searchResult', function (){
+angular.module('angularSocketNodeApp').directive('searchResult', function (theSocket){
   return {
     restrict: 'E',
     replace: true,
@@ -16,6 +16,8 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (){
       };
       scope.promote = function(result) {
         console.log(result);
+        theSocket.emit('promoted');
+
         if (result.status !== 1) {
           console.log("status being set to 1");
           result.status = 1;
@@ -23,8 +25,6 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (){
           console.log("status being set to 0");
           result.status = 0;
         }
-        // element.removeClass('demoted');
-        // element.toggleClass('promoted');
       };
       scope.demote = function(result) {
         console.log(result);
@@ -33,8 +33,6 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (){
         } else {
           result.status = 0;
         }
-        // element.removeClass('promoted');
-        // element.toggleClass('demoted');
       };
     }
   };

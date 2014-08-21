@@ -4,29 +4,24 @@ angular.module('angularSocketNodeApp')
   .controller('TeacherCtrl', function ($scope, User, theSocket, $routeParams, $location) {
     console.log($routeParams);
     $scope.userService = User;
+    $scope.className = '';
+    $scope.number = 0;
 
     console.log(User.teacherLoggedIn());
     if (User.teacherLoggedIn()) {
-      theSocket.emit('teacher');
+      //theSocket.emit('teacher');
     } else {
       console.log("Not logged in");
       $location.path('/login/teacher');
     }
 
-    $scope.logOut = function() {
-      User.logOutTeacher();
+    $scope.createClass = function() {
+      console.log("CREATE A CLASS");
+      theSocket.emit('create-class', $scope.className, $scope.number);
     }
 
-    $scope.queries = [];
-    var searchScope = $scope;
 
-    theSocket.on('query', function(data) {
-      console.log(data);
-      searchScope.queries.unshift({query:data});
+    theSocket.on('class-created', function(name, number, students) {
+      //the students have been added.
     });
-
-    theSocket.on('oldQueries', function(data) {
-    	searchScope.queries = searchScope.queries.concat(data);
-    });
-
 });

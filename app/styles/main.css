@@ -12,6 +12,10 @@ body {
   padding-right: 15px;
 }
 
+.navbar-fixed-top {
+  background-color: #e5e5e5;
+}
+
 /* Custom page header */
 .header {
   border-bottom: 1px solid #e5e5e5;
@@ -152,4 +156,18 @@ input.main-search-query {
 .register-now {
   display: inline-block;
   float: right;
+}
+
+.admin-block {
+  border-radius: 10px;
+  border: 1px solid black;
+  padding: 20px;
+  margin: 10px;
+  min-height: 500px;
+}
+
+.modal-header {
+  background-color: #e5e5e5;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
 }

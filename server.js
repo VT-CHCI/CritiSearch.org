@@ -4,8 +4,10 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var google = require('google');
+var async = require('async');
 
-google.resultsPerPage = 25;
+// Limit the results per page for testing
+google.resultsPerPage = 3;
 // var nextCounter = 0;
 
 var mysql      = require('mysql');
@@ -76,6 +78,40 @@ function getProcessedResults (results) {
   return resultsToSend;
 }
 
+function wrapperForInsert(result, newResult, connectionInfo, i) {
+  return function(callback) {
+    console.log('running task i:', i);
+    console.log('running task result:', result);
+    connection.query(newResult, [
+      result.link, 
+      result.description, 
+      i, 
+      connectionInfo.currentQuery, 
+      result.title
+    ], function(error, results){
+      console.log(error);
+      console.log(results);
+      console.log(results.insertId);
+      result.id = results.insertId;
+      callback(null, result);
+    });
+  };
+}
+
+function getTasks(processedResults, connectionInfo) {
+  console.log('getTasks');
+  var tasks = [];
+  for (i in processedResults) {
+    var result = processedResults[i];
+    console.log(result);
+    var newResult = 'insert into critisearch_results (link, description, result_order, query, title) values (?, ?, ?, ?, ?)';
+    tasks.push(wrapperForInsert(result, newResult, connectionInfo, i));
+    i++;
+  }
+  console.log(tasks);
+  return tasks;
+}
+
 //got the lists for this from: http://stackoverflow.com/q/16826200/1449799
  
 function getName() {
@@ -106,12 +142,45 @@ function getName() {
     return Math.floor(Math.random() * (max - min)) + min;
   }
  
-  return [
-    firstName[getRandomInt(0, firstName.length)], 
-    // middleName[getRandomInt(0, middleName.length)], 
-    lastName1[getRandomInt(0, lastName1.length)], 
-    lastName2[getRandomInt(0, lastName2.length)]
-  ];
+  return firstName[getRandomInt(0, firstName.length)] + " " + 
+    // middleName[getRandomInt(0, middleName.length)] + " " +
+    lastName1[getRandomInt(0, lastName1.length)] + " " +
+    lastName2[getRandomInt(0, lastName2.length)];
+}
+
+/**
+ * add a student to the user table
+ */
+function addStudent(classId) {
+  var name = getName();
+  var searchName = 'select * from users where name=?';
+  connection.query(searchName, [name], function(error, results) {
+    if (results.length > 0) {
+      addStudent(classId);
+    } else {
+      var addStudent = 'insert into users (name) values (?)';
+      connection.query(addStudent, [name], function(error, results) {
+        var userId = results.insertId;
+        var membershipQuery = 'insert into critisearch_role_memberships (uid, role_id, gid) values (?, ?, ?)';
+        connection.query(membershipQuery, [userId, 2, classId], function(error, results) {
+          console.log("Added user " + userId + " to class " + classId);
+        });
+      });
+    }
+  });
+  return {username: name};
+}
+
+/**
+ * get an array of names for the class, add them to the class
+ * and create them as users.
+ */
+function getNames(count, classId, teacherId) {
+  var names = [];
+  for (var i = 0; i < count; i++) {
+    names[i] = addStudent(classId);
+  }
+  return names;
 }
 
 /**
@@ -119,7 +188,7 @@ function getName() {
  * The main functions of the server, listening for events on the client
  * side and responding appropriately.
  */
- io.sockets.on('connection', function (socket) {
+io.sockets.on('connection', function (socket) {
   console.log('>> Client Connected  >> ');
   var connectionInfo = {};
 
@@ -141,10 +210,9 @@ function getName() {
 
     var addDisconnectTime = 'update critisearch_clients set disconnect = ? where id = ?';
     connection.query(addDisconnectTime, [new Date(), connectionInfo.dbId], function(error, results){
-    console.log(error);
-    console.log(results);
-  });
-
+      console.log(error);
+      console.log(results);
+    });
   });
 
   /**
@@ -193,12 +261,35 @@ function getName() {
 
     var newUser = 'select * from users where name=?';
     connection.query(newUser, [details.username], function(error, results) {
-      results.success = false;
         if (details.username == results[0].name && details.password == results[0].password) {
-          results.success = true;
+          console.log(results);
           console.log("User match");
+          connectionInfo['teacherId'] = results[0].id;
           socket.emit('login-teacher-done', {success: true});
       }
+    });
+  });
+
+  /**
+   * when the teacher creates a new class
+   */
+  socket.on('create-class', function(name, number) {
+    var newClassQuery = 'insert into critisearch_groups(name, owner) values (?, ?)';
+    console.log(connectionInfo.teacherId);
+    connection.query(newClassQuery, [name, connectionInfo.teacherId], function(error, results) {
+      console.log(error);
+      console.log(results);
+
+      var groupId = results.insertId;
+
+      var teacherRole = 'insert into critisearch_role_memberships (uid, role_id, gid) values (?, ?, ?)';
+      connection.query(teacherRole, [connectionInfo.teacherId, 1, groupId], function(error, results) {
+        console.log(error);
+        console.log(results);
+      });
+
+      //return the names list toat goes with this class
+      socket.emit('class-created', name, number, getNames(number, groupId, connectionInfo.teacherId));
     });
   });
 
@@ -232,6 +323,19 @@ function getName() {
     console.log(msg.data);
   });
 
+  socket.on('promoted', function() {
+    //id 3
+    var promotedQuery = 'insert into critisearch_events (type, time, client, result) values (?, ?, ?, ?)';
+    connection.query(promotedQuery, [3, new Date(), connectionInfo.dbId, 1], function(error, results) {
+      console.log(error);
+      console.log(results);
+    });
+  });
+
+
+  /**
+   * When the user searches
+   */
   socket.on('q', function(q) {
 
     socket.broadcast.to('teacher').emit('query', q);
@@ -242,29 +346,45 @@ function getName() {
       console.log(error);
       console.log(results);
       if (results.hasOwnProperty('insertId')) {
-        connectionInfo['currentQuery'] = results.insertId;
+        var id = results.insertId;
+        console.log('query db id:', id);
+        connectionInfo['currentQuery'] = id;
+
+        //Log the query event to the database
+        var newEvent = 'insert into critisearch_events (type, time, client, query) values (?, ?, ?, ?)';
+        connection.query(newEvent, [1, new Date(), connectionInfo.dbId, connectionInfo.currentQuery], function(error, results) {
+          console.log(error);
+          console.log(results);
+        });
       }
     });
 
     google(q, function(err, next, results) {
 
       var processedResults = getProcessedResults(results);
-      
-      socket.emit('search-results', processedResults);
 
-      for (var x = 0; x < processedResults.length; x++) {
+      async.parallel(getTasks(processedResults, connectionInfo), function(error, results) {
+        console.log('parallel callback');
+        console.log(error);
+        console.log(results);
+        socket.emit('search-results', results);
+      });
+
+      // for (var x = 0; x < processedResults.length; x++) {
         
-        var newResult = 'insert into critisearch_results (link, description, result_order, query, title) values (?, ?, ?, ?, ?)';
+      //   var newResult = 'insert into critisearch_results (link, description, result_order, query, title) values (?, ?, ?, ?, ?)';
 
-        connection.query(newResult, [processedResults[x].link, 
-            processedResults[x].description, 
-            x, 
-            connectionInfo.currentQuery, 
-            processedResults[x].title], function(error, results){
-          console.log(error);
-          console.log(results);
-        });
-      }
+      //   connection.query(newResult, [processedResults[x].link, 
+      //       processedResults[x].description, 
+      //       x, 
+      //       connectionInfo.currentQuery, 
+      //       processedResults[x].title], function(error, results){
+      //     console.log(error);
+      //     console.log(results);
+      //     console.log(results.insertId);
+
+      //   });
+      // }
 
     });
   });

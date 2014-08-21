@@ -54,6 +54,10 @@ angular
         templateUrl: 'views/teacher.html',
         controller: 'TeacherCtrl'
       })
+      .when('/class', {
+        templateUrl: 'views/class.html',
+        controller: 'ClassCtrl'
+      })
       .when('/signup', {
         templateUrl: 'views/signup.html',
         controller: 'SignUpCtrl'
