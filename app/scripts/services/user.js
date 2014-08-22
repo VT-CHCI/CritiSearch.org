@@ -9,6 +9,7 @@ angular.module('angularSocketNodeApp')
   this.uid = '';
   this.authenticated = false;
   this.studentAuthenticated = false;
+  this.groups = [];
   
   this.teacherLoggedIn = function () {
     return userService.authenticated;
@@ -26,6 +27,10 @@ angular.module('angularSocketNodeApp')
     theSocket.emit('login-student', {sillyname: name});
   };
 
+  this.getGroups = function() {
+    return userService.groups;
+  }
+
   theSocket.on('login-teacher-done', function(data){
     console.log(data);
     if (data.success) {
@@ -35,6 +40,22 @@ angular.module('angularSocketNodeApp')
       console.log(userService.authenticated);
       $location.path('/teacher');
     }
+  });
+
+  theSocket.on('classes-loaded', function(results) {
+    var classes = [];
+    for (var i = 0; i < results.length; i++) {
+      var users = [];
+      for (var j = 0; j < results.length; j++) {
+        if (results[i].name == results[j].name) {
+          users.push(results[j].username);
+          i = j;
+        }
+      }
+      classes.push({className: results[i].name, users: users});
+    }
+    userService.groups = classes;
+    console.log(userService.groups);
   });
 
   theSocket.on('login-student-done', function(data){

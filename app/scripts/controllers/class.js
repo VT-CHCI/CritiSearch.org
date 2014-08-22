@@ -2,7 +2,7 @@
 
 angular.module('angularSocketNodeApp')
   .controller('ClassCtrl', function ($scope, User, theSocket, $routeParams, $location) {
-    console.log($routeParams);
+    console.log($routeParams); //expect username and classname
     $scope.userService = User;
 
     console.log(User.teacherLoggedIn());

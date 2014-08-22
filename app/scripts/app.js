@@ -68,7 +68,11 @@ angular
       })
       .when('/login/student', {
         templateUrl: 'views/loginstudent.html',
-        controller: 'LogInStudentCtrl'
+        controller: 'LogInStudent=Ctrl'
+      })
+      .when('/u/:username/:classname', {
+        templateUrl: 'views/class.html',
+        controller: 'ClassCtrl'
       })
       .otherwise({
         redirectTo: '/search'

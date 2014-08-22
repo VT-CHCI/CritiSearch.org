@@ -2,13 +2,14 @@
 
 angular.module('angularSocketNodeApp')
   .controller('TeacherCtrl', function ($scope, User, theSocket, $routeParams, $location) {
-    console.log($routeParams);
     $scope.userService = User;
     $scope.className = '';
     $scope.number = 0;
+    $scope.groups = [];
 
     console.log(User.teacherLoggedIn());
     if (User.teacherLoggedIn()) {
+      $scope.groups = User.getGroups();
       //theSocket.emit('teacher');
     } else {
       console.log("Not logged in");
@@ -22,6 +23,6 @@ angular.module('angularSocketNodeApp')
 
 
     theSocket.on('class-created', function(name, number, students) {
-      //the students have been added.
+      
     });
 });

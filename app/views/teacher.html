@@ -1,5 +1,12 @@
 <button type="submit" data-toggle="modal" data-target="#myModal" class="btn btn-default">Create Class!</button>
 
+<ul>
+  <li class="group-name" ng-repeat="group in userService.groups">
+    {{group.className}}
+    <ul><li class="participant-name" ng-repeat="name in group.users">{{name}}</li></ul>
+  </li>
+</ul>
+
 <!-- Modal -->
 <div class="modal fade add-class-modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog">

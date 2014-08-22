@@ -144,7 +144,7 @@ function getName() {
  
   return firstName[getRandomInt(0, firstName.length)] + " " + 
     // middleName[getRandomInt(0, middleName.length)] + " " +
-    lastName1[getRandomInt(0, lastName1.length)] + " " +
+    lastName1[getRandomInt(0, lastName1.length)] + 
     lastName2[getRandomInt(0, lastName2.length)];
 }
 
@@ -181,6 +181,19 @@ function getNames(count, classId, teacherId) {
     names[i] = addStudent(classId);
   }
   return names;
+}
+
+function getClasses(connectionInfo, socket) {
+  var detailsQuery = 'SELECT g.name as "name", others.name as "username" ' +
+    'from critisearch_groups g ' +
+    'JOIN critisearch_role_memberships m on m.gid=g.gid and m.role_id=2 ' +
+    'join users others on others.id = m.uid ' +
+    'WHERE g.owner=? order by g.gid;';
+  connection.query(detailsQuery, [connectionInfo.teacherId], function(error, results) {
+    //console.log(results);
+
+    socket.emit('classes-loaded', results);
+  });
 }
 
 /**
@@ -230,6 +243,9 @@ io.sockets.on('connection', function (socket) {
       } else if (email != null) {
         var newUser = 'insert into users (name, password, email) values (?, ?, ?)'
         connection.query(newUser, [username, password, email], function(error, results) {
+          console.log(results);
+
+          connectionInfo['teacherId'] = results.insertId;
           socket.emit('login-teacher-done', {success: true});
         });
       } else {
@@ -261,11 +277,14 @@ io.sockets.on('connection', function (socket) {
 
     var newUser = 'select * from users where name=?';
     connection.query(newUser, [details.username], function(error, results) {
-        if (details.username == results[0].name && details.password == results[0].password) {
-          console.log(results);
-          console.log("User match");
-          connectionInfo['teacherId'] = results[0].id;
-          socket.emit('login-teacher-done', {success: true});
+      if (details.username == results[0].name && details.password == results[0].password) {
+        console.log(results);
+        console.log("User match");
+        connectionInfo['teacherId'] = results[0].id;
+
+        socket.emit('login-teacher-done', {success: true});
+
+        getClasses(connectionInfo, socket);
       }
     });
   });
@@ -290,6 +309,7 @@ io.sockets.on('connection', function (socket) {
 
       //return the names list toat goes with this class
       socket.emit('class-created', name, number, getNames(number, groupId, connectionInfo.teacherId));
+      getClasses(connectionInfo, socket);
     });
   });
 
