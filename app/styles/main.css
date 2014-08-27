@@ -153,6 +153,7 @@ input.main-search-query {
   margin: 3px;
   text-align: center;
 }
+
 .register-now {
   display: inline-block;
   float: right;
@@ -170,4 +171,38 @@ input.main-search-query {
   background-color: #e5e5e5;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
+}
+
+.class-panel {
+  display: inline-block;
+  margin: 5px;
+}
+
+.panel-heading {
+  text-align: center;
+}
+
+.panel-body {
+  text-align: center;
+}
+
+img.add-class {
+  height: 250px;
+  width: 200px;
+}
+
+.student-list {
+  padding: 3px;
+  border: 1px solid gray;
+  border-radius: 3px;
+  height: 150px;
+  width: 200px;
+  overflow-y: auto;
+  margin: 5px;
+}
+
+.class-button {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }

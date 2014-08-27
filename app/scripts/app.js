@@ -54,7 +54,7 @@ angular
         templateUrl: 'views/teacher.html',
         controller: 'TeacherCtrl'
       })
-      .when('/class', {
+      .when('/class/:id', {
         templateUrl: 'views/class.html',
         controller: 'ClassCtrl'
       })
@@ -68,7 +68,7 @@ angular
       })
       .when('/login/student', {
         templateUrl: 'views/loginstudent.html',
-        controller: 'LogInStudent=Ctrl'
+        controller: 'LogInStudentCtrl'
       })
       .when('/u/:username/:classname', {
         templateUrl: 'views/class.html',

@@ -10,13 +10,30 @@ angular.module('angularSocketNodeApp')
   this.authenticated = false;
   this.studentAuthenticated = false;
   this.groups = [];
+  this.currentGroup = 0;
   
   this.teacherLoggedIn = function () {
     return userService.authenticated;
   };
 
+  this.getUserId = function() {
+    return userService.uid;
+  }
+
+  this.getCurrentGroup = function() {
+    return userService.currentGroup;
+  };
+
+  this.setGroup = function(groupId) {
+    userService.currentGroup = groupId;
+  };
+
   this.studentLoggedIn = function () {
     return (userService.studentAuthenticated || userService.authenticated);
+  };
+
+  this.getUserName = function() {
+    return userService.username;
   };
 
   this.logInTeacher = function(username, password) {
@@ -29,7 +46,7 @@ angular.module('angularSocketNodeApp')
 
   this.getGroups = function() {
     return userService.groups;
-  }
+  };
 
   theSocket.on('login-teacher-done', function(data){
     console.log(data);
@@ -52,7 +69,7 @@ angular.module('angularSocketNodeApp')
           i = j;
         }
       }
-      classes.push({className: results[i].name, users: users});
+      classes.push({className: results[i].name, users: users, groupId: results[i].gid});
     }
     userService.groups = classes;
     console.log(userService.groups);
@@ -61,8 +78,8 @@ angular.module('angularSocketNodeApp')
   theSocket.on('login-student-done', function(data){
     console.log(data);
     if (data.success) {
-      userService.username = data.username;
-      userService.uid = data.uid;
+      userService.username = data.name;
+      userService.uid = data.id;
       userService.studentAuthenticated = true;
       console.log(userService.authenticated);
       $location.path('/search');

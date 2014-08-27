@@ -21,6 +21,12 @@ angular.module('angularSocketNodeApp')
       theSocket.emit('create-class', $scope.className, $scope.number);
     }
 
+    $scope.goToClass = function(name) {
+      console.log('/class/' + name);
+      User.setGroup(name);
+      $location.path('/class/' + name);
+    }
+
 
     theSocket.on('class-created', function(name, number, students) {
       

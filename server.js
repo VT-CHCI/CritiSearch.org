@@ -184,7 +184,7 @@ function getNames(count, classId, teacherId) {
 }
 
 function getClasses(connectionInfo, socket) {
-  var detailsQuery = 'SELECT g.name as "name", others.name as "username" ' +
+  var detailsQuery = 'SELECT g.name as "name", others.name as "username", g.gid ' +
     'from critisearch_groups g ' +
     'JOIN critisearch_role_memberships m on m.gid=g.gid and m.role_id=2 ' +
     'join users others on others.id = m.uid ' +
@@ -318,23 +318,23 @@ io.sockets.on('connection', function (socket) {
 
     var newUser = 'select * from users where name=?';
     connection.query(newUser, [details.sillyname], function(error, results) {
-      var complete = {
-        success: false
-      }
+      results[0].success = false;
       console.log("Looking for " + results[0].name);
       if (details.sillyname == results[0].name) {
-        complete.success = true;
+        results[0].success = true;
         console.log("User match");
       }
-      socket.emit('login-student-done', complete);
+      socket.emit('login-student-done', results[0]);
     });
   });
 
-  socket.on('teacher', function() {
+  socket.on('teacher', function(groupId) {
     console.log('Teacher Joined')
-    socket.join('teacher');
-    var oldResults = 'SELECT * FROM critisearch_queries where time > date_sub(now(),INTERVAL 90 MINUTE) order by time desc;';
-    connection.query(oldResults, function(error, results) {
+    socket.join('teacher ' + groupId);
+    var oldResults = 'SELECT q.query FROM critisearch_queries q ' +
+      'join critisearch_role_memberships m on m.uid=q.searcher ' +
+      'where m.gid=? and time > date_sub(now(),INTERVAL 90 MINUTE) order by time desc;';
+    connection.query(oldResults, [groupId], function(error, results) {
       socket.emit('oldQueries', results);
     });
   });
@@ -344,7 +344,6 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('promoted', function() {
-    //id 3
     var promotedQuery = 'insert into critisearch_events (type, time, client, result) values (?, ?, ?, ?)';
     connection.query(promotedQuery, [3, new Date(), connectionInfo.dbId, 1], function(error, results) {
       console.log(error);
@@ -356,13 +355,19 @@ io.sockets.on('connection', function (socket) {
   /**
    * When the user searches
    */
-  socket.on('q', function(q) {
+  socket.on('q', function(details) {
 
-    socket.broadcast.to('teacher').emit('query', q);
+    socket.broadcast.to('teacher ' + details.group).emit('query', details.query);
 
     var newQuery = 'insert into critisearch_queries (query, searcher, time) values (?, ?, ?)';
-    console.log(q, connectionInfo.dbId, new Date());
-    connection.query(newQuery, [q, connectionInfo.dbId, new Date()], function(error, results){
+    var searcher;
+    if (details.hasOwnProperty('userId')) {
+      searcher = details.userId;
+    } else {
+      searcher = connectionInfo.dbId;
+    }
+    console.log('SEARCHING ' + details.query, searcher, new Date());
+    connection.query(newQuery, [details.query, searcher, new Date()], function(error, results){
       console.log(error);
       console.log(results);
       if (results.hasOwnProperty('insertId')) {
@@ -372,14 +377,14 @@ io.sockets.on('connection', function (socket) {
 
         //Log the query event to the database
         var newEvent = 'insert into critisearch_events (type, time, client, query) values (?, ?, ?, ?)';
-        connection.query(newEvent, [1, new Date(), connectionInfo.dbId, connectionInfo.currentQuery], function(error, results) {
+        connection.query(newEvent, [1, new Date(), searcher, connectionInfo.currentQuery], function(error, results) {
           console.log(error);
           console.log(results);
         });
       }
     });
 
-    google(q, function(err, next, results) {
+    google(details.query, function(err, next, results) {
 
       var processedResults = getProcessedResults(results);
 

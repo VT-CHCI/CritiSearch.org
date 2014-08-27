@@ -18,7 +18,14 @@ angular.module('angularSocketNodeApp')
     };
 
     $scope.search = function() {
-      theSocket.emit('q', $scope.query);
+      var details = {};
+      if (User.getUserId() != '') {
+        details.userId = User.getUserId();
+      }
+      details.group = User.getCurrentGroup();
+      details.query = $scope.query;
+      console.log(details);
+      theSocket.emit('q', details);
     };
 
     if ($routeParams.hasOwnProperty('query') 

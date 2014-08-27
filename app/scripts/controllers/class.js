@@ -7,7 +7,7 @@ angular.module('angularSocketNodeApp')
 
     console.log(User.teacherLoggedIn());
     if (User.teacherLoggedIn()) {
-      theSocket.emit('teacher');
+      theSocket.emit('teacher', User.getCurrentGroup());
     } else {
       console.log("Not logged in");
       $location.path('/login/teacher');
