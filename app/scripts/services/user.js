@@ -10,7 +10,11 @@ angular.module('angularSocketNodeApp')
   this.authenticated = false;
   this.studentAuthenticated = false;
   this.groups = [];
-  this.currentGroup = 0;
+  this.currentGroup = {
+    id: 0,
+    name: '',
+    students: []
+  }
   
   this.teacherLoggedIn = function () {
     return userService.authenticated;
@@ -25,7 +29,10 @@ angular.module('angularSocketNodeApp')
   };
 
   this.setGroup = function(groupId) {
-    userService.currentGroup = groupId;
+    var result = $.grep(userService.groups, function(e){ return e.groupId == groupId; });
+    userService.currentGroup.id = result[0].groupId;
+    userService.currentGroup.name = result[0].className;
+    userService.currentGroup.students = result[0].users;
   };
 
   this.studentLoggedIn = function () {

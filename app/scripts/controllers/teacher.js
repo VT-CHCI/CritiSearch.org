@@ -29,6 +29,6 @@ angular.module('angularSocketNodeApp')
 
 
     theSocket.on('class-created', function(name, number, students) {
-      
+      $scope.groups = User.getGroups();
     });
 });

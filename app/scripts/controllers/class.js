@@ -4,10 +4,11 @@ angular.module('angularSocketNodeApp')
   .controller('ClassCtrl', function ($scope, User, theSocket, $routeParams, $location) {
     console.log($routeParams); //expect username and classname
     $scope.userService = User;
+    $scope.currentClass = User.getCurrentGroup();
 
     console.log(User.teacherLoggedIn());
     if (User.teacherLoggedIn()) {
-      theSocket.emit('teacher', User.getCurrentGroup());
+      theSocket.emit('teacher', User.getCurrentGroup().id);
     } else {
       console.log("Not logged in");
       $location.path('/login/teacher');
