@@ -277,7 +277,10 @@ io.sockets.on('connection', function (socket) {
 
     var newUser = 'select * from users where name=?';
     connection.query(newUser, [details.username], function(error, results) {
-      if (details.username == results[0].name && details.password == results[0].password) {
+      if(results.length < 1) {
+        console.log("No user found");
+        socket.emit('login-failed');
+      } else if (details.username == results[0].name && details.password == results[0].password) {
         console.log(results);
         console.log("User match");
         connectionInfo['teacherId'] = results[0].id;
@@ -311,6 +314,23 @@ io.sockets.on('connection', function (socket) {
       socket.emit('class-created', name, number, getNames(number, groupId, connectionInfo.teacherId));
       getClasses(connectionInfo, socket);
     });
+  });
+
+  socket.on('delete-class', function(id) {
+    console.log("Deleting class " + id);
+    var deleteQuery = 'DELETE FROM critisearch_role_memberships WHERE gid=?;';
+    connection.query(deleteQuery, [id], function(error, results) {
+      console.log(results);
+    });
+    deleteQuery = 'DELETE FROM critisearch_groups WHERE gid=?;';
+    connection.query(deleteQuery, [id], function(error, results) {
+      console.log(results);
+      socket.emit('class-deleted');
+    });
+  });
+
+  socket.on('add-students', function(id, number) {
+    getNames(number, id, connectionInfo.teacherId)
   });
 
   socket.on('login-student', function(details) {

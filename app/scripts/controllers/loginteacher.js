@@ -11,5 +11,9 @@ angular.module('angularSocketNodeApp')
     User.logInTeacher($scope.username, password);
   }
 
+  theSocket.on('login-failed', function() {
+  	console.log("login failed");
+  });
+
   
 });

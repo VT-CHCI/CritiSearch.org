@@ -1,235 +1,200 @@
 /* Space out content a bit */
+
 body {
-  padding-top: 20px;
-  padding-bottom: 20px;
+    padding-top: 80px;
+    padding-bottom: 20px;
 }
-
 /* Everything but the jumbotron gets side spacing for mobile first views */
-.header,
-.marketing,
-.footer {
-  padding-left: 15px;
-  padding-right: 15px;
-}
 
+.header, .marketing, .footer {
+    padding-left: 15px;
+    padding-right: 15px;
+}
 .navbar-fixed-top {
-  background-color: #e5e5e5;
+    background-color: #e5e5e5;
 }
-
-/* Custom page header */
-.header {
-  border-bottom: 1px solid #e5e5e5;
-}
-
-/* Make the masthead heading the same height as the navigation */
-.header h3 {
-  margin-top: 0;
-  margin-bottom: 0;
-  line-height: 50px;
-  padding-bottom: 19px;
-}
-
 /* Custom page footer */
-.footer {
-  padding-top: 19px;
-  color: #777;
-  border-top: 1px solid #e5e5e5;
-}
 
+.footer {
+    padding-top: 19px;
+    color: #777;
+    border-top: 1px solid #e5e5e5;
+}
 /* Customize container */
+
 @media (min-width: 768px) {
-  .container {
-    max-width: 730px;
-  }
+    .container {
+        max-width: 730px;
+    }
 }
 .container-narrow > hr {
-  margin: 30px 0;
+    margin: 30px 0;
 }
-
 /* Main marketing message and sign up button */
+
 .jumbotron {
-  text-align: center;
-  border-bottom: 1px solid #e5e5e5;
+    text-align: center;
+    border-bottom: 1px solid #e5e5e5;
 }
 .jumbotron .btn {
-  font-size: 21px;
-  padding: 14px 24px;
+    font-size: 21px;
+    padding: 14px 24px;
 }
-
 /* Supporting marketing content */
+
 .marketing {
-  margin: 40px 0;
+    margin: 40px 0;
 }
 .marketing p + h4 {
-  margin-top: 28px;
+    margin-top: 28px;
 }
-
 /* Responsive: Portrait tablets and up */
+
 @media screen and (min-width: 768px) {
-  /* Remove the padding we set earlier */
-  .header,
-  .marketing,
-  .footer {
-    padding-left: 0;
-    padding-right: 0;
-  }
-  /* Space out the masthead */
-  .header {
-    margin-bottom: 50px;
-  }
-  /* Remove the bottom border on the jumbotron for visual effect */
-  .jumbotron {
-    border-bottom: 0;
-  }
+    /* Remove the padding we set earlier */
+    .header, .marketing, .footer {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    /* Space out the masthead */
+    .header {
+        margin-bottom: 50px;
+    }
+    /* Remove the bottom border on the jumbotron for visual effect */
+    .jumbotron {
+        border-bottom: 0;
+    }
 }
-
-.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
-
+.nav, .pagination, .carousel, .panel-title a {
+    cursor: pointer;
+}
 .main-search-query {
-  margin-bottom: 10px;
-  width: 100%;
+    margin-bottom: 10px;
+    width: 100%;
 }
-
 .button-nav:hover {
-  background-color: white;
+    background-color: white;
 }
-
 .search-result {
-  border: 2px solid transparent;
-  border-radius: 7px;
-  padding: 10px;
-  margin: 3px;
-  position: relative;
+    border: 2px solid transparent;
+    border-radius: 7px;
+    padding: 10px;
+    margin: 3px;
+    position: relative;
 }
-
 .search-result:hover {
-  border: 2px solid #428bca;
+    border: 2px solid #428bca;
 }
-
 .promoted {
-  background-color: #8FFF92;
+    background-color: #8FFF92;
 }
-
 .demoted {
-  background-color: #FF8F92;
-  color: #969696;
+    background-color: #FF8F92;
+    color: #969696;
 }
-
 .demoted a:link {
-  color: #808080;
+    color: #808080;
 }
-
 input.main-search-query {
-  width: 100%;
+    width: 100%;
 }
-
 .like_dislike {
-  float: right;
-  margin: -10px;
-  position: absolute;
-  right: 10px;
-  top: 10px;
+    float: right;
+    margin: -10px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
 }
-
 .critisort {
-  position: fixed;
-  top: 20;
-  right: 20;
+    position: fixed;
+    top: 20;
+    right: 20;
 }
-
 .teacher-queries {
-  border: 1px solid black;
-  border-radius: 10px;
-  height: 500px;
-  padding:20px;
+    border: 1px solid black;
+    border-radius: 10px;
+    height: 500px;
+    padding: 20px;
 }
-
 .teacher-title {
-  display: block;
-  margin-right: auto;
-  margin-left: auto;
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
 }
-
 .student-query {
-  list-style-type: none;
-  display: block;
-  border-radius: 8px;
-  background-color: #FFCC33;
-  padding: 5px;
-  margin: 3px;
-  text-align: center;
+    list-style-type: none;
+    display: block;
+    border-radius: 8px;
+    background-color: #FFCC33;
+    padding: 5px;
+    margin: 3px;
+    text-align: center;
 }
-
 .register-now {
-  display: inline-block;
-  float: right;
+    display: inline-block;
+    float: right;
 }
-
 .admin-block {
-  border-radius: 10px;
-  border: 1px solid black;
-  padding: 20px;
-  margin: 10px;
-  min-height: 500px;
+    border-radius: 10px;
+    border: 1px solid black;
+    padding: 20px;
+    margin: 10px;
+    min-height: 500px;
+}
+.modal-header {
+    background-color: #e5e5e5;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
 }
 
-.modal-header {
-  background-color: #e5e5e5;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
+.header-delete {
+    background-color: #FF0000;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
 }
 
 .class-panel {
-  display: inline-block;
-  margin: 5px;
-  width: 250px;
-  height: 330px;
+    display: inline-block;
+    margin: 5px;
+    width: 250px;
+    height: 330px;
 }
-
 .panel-heading {
-  text-align: center;
+    text-align: center;
 }
-
 .panel-title {
-  height: 40px;
-  overflow-y: auto;
+    height: 40px;
+    overflow-y: auto;
 }
-
 .panel-body {
-  text-align: center;
+    text-align: center;
 }
-
 img.add-class {
-  height: 200px;
-  width: 150px;
+    height: 200px;
+    width: 150px;
 }
-
 .student-list {
-  padding: 3px;
-  border: 1px solid gray;
-  border-radius: 3px;
-  height: 150px;
-  width: 200px;
-  overflow-y: auto;
-  margin: 5px;
+    padding: 3px;
+    border: 1px solid gray;
+    border-radius: 3px;
+    height: 150px;
+    width: 200px;
+    overflow-y: auto;
+    margin: 5px;
 }
-
 .students {
-  overflow-y: auto; 
-  height: 450px;
+    overflow-y: auto;
+    height: 450px;
 }
-
 .class-button {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
-
 .class-btn {
-  margin-bottom: 10px;
-  width: 100%;
+    margin-bottom: 10px;
+    width: 100%;
 }
-
 .padding {
-  height: 70px;
+    height: 70px;
 }

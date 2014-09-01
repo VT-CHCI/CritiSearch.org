@@ -14,12 +14,28 @@ angular.module('angularSocketNodeApp')
       $location.path('/login/teacher');
     }
 
+    $scope.addStudents = function() {
+      theSocket.emit('add-students', $scope.currentClass.id, $scope.number);
+    }
+
+    $scope.deleteClass = function() {
+      theSocket.emit('delete-class', $scope.currentClass.id);
+    }
+
     $scope.logOut = function() {
       User.logOutTeacher();
     }
 
+    $scope.logOutAll = function() {
+      // How do you do this???
+    }
+
     $scope.queries = [];
     var searchScope = $scope;
+
+    theSocket.on('class-deleted', function() {
+      $location.path('/teacher');
+    })
 
     theSocket.on('query', function(data) {
       console.log(data);
