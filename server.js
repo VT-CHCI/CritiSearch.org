@@ -151,12 +151,14 @@ function getName() {
 /**
  * add a student to the user table
  */
-function addStudent(classId) {
+function addStudent(classId, cb) {
   var name = getName();
   var searchName = 'select * from users where name=?';
   connection.query(searchName, [name], function(error, results) {
+    // cgeck err
     if (results.length > 0) {
-      addStudent(classId);
+      console.log("Name taken, chosing a new name");
+      addStudent(classId, cb);
     } else {
       var addStudent = 'insert into users (name) values (?)';
       connection.query(addStudent, [name], function(error, results) {
@@ -164,21 +166,29 @@ function addStudent(classId) {
         var membershipQuery = 'insert into critisearch_role_memberships (uid, role_id, gid) values (?, ?, ?)';
         connection.query(membershipQuery, [userId, 2, classId], function(error, results) {
           console.log("Added user " + userId + " to class " + classId);
+          if (error) {
+            cb(error);
+          } else if (results) {
+            console.log(results);
+            cb(null, {username:name});
+          }
         });
       });
     }
   });
-  return {username: name};
+  // return {username: name};
 }
 
 /**
  * get an array of names for the class, add them to the class
  * and create them as users.
  */
-function getNames(count, classId, teacherId) {
+function getNames(count, classId) {
   var names = [];
   for (var i = 0; i < count; i++) {
-    names[i] = addStudent(classId);
+    names.push(function(cb) {
+      addStudent(classId, cb);
+    });
   }
   return names;
 }
@@ -191,7 +201,6 @@ function getClasses(connectionInfo, socket) {
     'WHERE g.owner=? order by g.gid;';
   connection.query(detailsQuery, [connectionInfo.teacherId], function(error, results) {
     //console.log(results);
-
     socket.emit('classes-loaded', results);
   });
 }
@@ -299,20 +308,25 @@ io.sockets.on('connection', function (socket) {
     var newClassQuery = 'insert into critisearch_groups(name, owner) values (?, ?)';
     console.log(connectionInfo.teacherId);
     connection.query(newClassQuery, [name, connectionInfo.teacherId], function(error, results) {
-      console.log(error);
-      console.log(results);
 
       var groupId = results.insertId;
 
       var teacherRole = 'insert into critisearch_role_memberships (uid, role_id, gid) values (?, ?, ?)';
       connection.query(teacherRole, [connectionInfo.teacherId, 1, groupId], function(error, results) {
-        console.log(error);
-        console.log(results);
+      });
+
+      async.parallel(getNames(number, groupId), function(error, results) {
+        if (error) {
+          console.log(error);
+        } else if (results) {
+          console.log("result being logged");
+          console.log(results);
+          socket.emit('class-created', name, groupId, results);
+        }
       });
 
       //return the names list toat goes with this class
-      socket.emit('class-created', name, number, getNames(number, groupId, connectionInfo.teacherId));
-      getClasses(connectionInfo, socket);
+      
     });
   });
 
@@ -330,7 +344,7 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('add-students', function(id, number) {
-    getNames(number, id, connectionInfo.teacherId)
+    // getNames(number, id, connectionInfo.teacherId)
   });
 
   socket.on('login-student', function(details) {
@@ -344,7 +358,16 @@ io.sockets.on('connection', function (socket) {
         results[0].success = true;
         console.log("User match");
       }
-      socket.emit('login-student-done', results[0]);
+
+      var user = results[0];
+
+      var findGroup = 'select * from critisearch_role_memberships where uid=?';
+      connection.query(findGroup, [user.id], function(error, results) {
+        if (error == null) {
+          user.groupId = results[0].gid;
+          socket.emit('login-student-done', user);
+        }
+      })
     });
   });
 
@@ -376,8 +399,8 @@ io.sockets.on('connection', function (socket) {
    * When the user searches
    */
   socket.on('q', function(details) {
-
-    socket.broadcast.to('teacher ' + details.group).emit('query', details.query);
+    console.log("Group: " + details.group.id);
+    socket.broadcast.to('teacher ' + details.group.id).emit('query', details.query);
 
     var newQuery = 'insert into critisearch_queries (query, searcher, time) values (?, ?, ?)';
     var searcher;
@@ -398,8 +421,6 @@ io.sockets.on('connection', function (socket) {
         //Log the query event to the database
         var newEvent = 'insert into critisearch_events (type, time, client, query) values (?, ?, ?, ?)';
         connection.query(newEvent, [1, new Date(), searcher, connectionInfo.currentQuery], function(error, results) {
-          console.log(error);
-          console.log(results);
         });
       }
     });
@@ -410,8 +431,6 @@ io.sockets.on('connection', function (socket) {
 
       async.parallel(getTasks(processedResults, connectionInfo), function(error, results) {
         console.log('parallel callback');
-        console.log(error);
-        console.log(results);
         socket.emit('search-results', results);
       });
 

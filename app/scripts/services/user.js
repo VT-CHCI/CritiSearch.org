@@ -20,6 +20,18 @@ angular.module('angularSocketNodeApp')
     return userService.authenticated;
   };
 
+  this.addClass = function(className, number, classStudents) {
+    userService.groups.push({
+      id: number,
+      name: className,
+      students: classStudents
+    })
+  }
+
+  this.setUserId = function(id) {
+    userService.uid = id;
+  }
+
   this.getUserId = function() {
     return userService.uid;
   }
@@ -28,11 +40,15 @@ angular.module('angularSocketNodeApp')
     return userService.currentGroup;
   };
 
-  this.setGroup = function(groupId) {
-    var result = $.grep(userService.groups, function(e){ return e.groupId == groupId; });
-    userService.currentGroup.id = result[0].groupId;
-    userService.currentGroup.name = result[0].className;
-    userService.currentGroup.students = result[0].users;
+  this.setGroup = function(groupId, teacher) {
+    if (teacher) {
+      var result = $.grep(userService.groups, function(e){ return e.groupId == groupId; });
+      userService.currentGroup.id = result[0].groupId;
+      userService.currentGroup.name = result[0].className;
+      userService.currentGroup.students = result[0].users;
+    } else {
+      userService.currentGroup.id = groupId;
+    }
   };
 
   this.studentLoggedIn = function () {
@@ -83,14 +99,26 @@ angular.module('angularSocketNodeApp')
   });
 
   theSocket.on('login-student-done', function(data){
-    console.log(data);
     if (data.success) {
       userService.username = data.name;
       userService.uid = data.id;
       userService.studentAuthenticated = true;
-      console.log(userService.authenticated);
+      userService.setGroup(data.groupId, false);
       $location.path('/search');
     }
+  });
+
+  theSocket.on('class-created', function(name, number, students) {
+    console.log(name, number, students);
+    var classStudents = [];
+    for (var i = 0; i < students.length; i++) {
+      classStudents.push(students[i].username);
+    }
+    userService.groups.push({
+      className: name,
+      groupId: number,
+      users: classStudents
+    })
   });
 
   this.logOutTeacher = function() {

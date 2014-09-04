@@ -154,7 +154,7 @@ input.main-search-query {
 }
 
 .class-panel {
-    display: inline-block;
+    float: left;
     margin: 5px;
     width: 250px;
     height: 330px;
@@ -171,7 +171,7 @@ input.main-search-query {
 }
 img.add-class {
     height: 200px;
-    width: 150px;
+    width: 170px;
 }
 .student-list {
     padding: 3px;

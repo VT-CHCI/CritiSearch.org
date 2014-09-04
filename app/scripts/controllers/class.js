@@ -34,6 +34,7 @@ angular.module('angularSocketNodeApp')
     var searchScope = $scope;
 
     theSocket.on('class-deleted', function() {
+      $('.modal-backdrop').remove();
       $location.path('/teacher');
     })
 

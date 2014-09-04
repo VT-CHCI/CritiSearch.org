@@ -23,6 +23,7 @@ angular.module('angularSocketNodeApp')
         details.userId = User.getUserId();
       }
       details.group = User.getCurrentGroup();
+      console.log("currentGroup: " + User.getCurrentGroup());
       details.query = $scope.query;
       console.log(details);
       theSocket.emit('q', details);
