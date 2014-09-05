@@ -28,13 +28,18 @@ angular.module('angularSocketNodeApp')
 
     $scope.logOutAll = function() {
       // How do you do this???
+
+      //send an event to the group
+      //have the students listen for the event
+      //logout the students
     }
 
     $scope.queries = [];
     var searchScope = $scope;
 
-    theSocket.on('class-deleted', function() {
+    theSocket.on('class-deleted', function(id) {
       $('.modal-backdrop').remove();
+      User.deleteClass(id);
       $location.path('/teacher');
     })
 

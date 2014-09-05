@@ -1,16 +1,15 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('TeacherCtrl', function ($scope, User, theSocket, $routeParams, $location) {
+  .controller('TeacherCtrl', function ($scope, User, theSocket, $routeParams, $location, $cookies) {
     $scope.userService = User;
     $scope.className = '';
-    $scope.number = 0;
-    $scope.groups = [];
+    $scope.number;
 
-    console.log(User.teacherLoggedIn());
-    if (User.teacherLoggedIn()) {
-      $scope.groups = User.getGroups();
-      //theSocket.emit('teacher');
+    console.log("Cookies, isLoggedIn:");
+    console.log($cookies.isLoggedIn);
+    if ($cookies.isLoggedIn == true) {
+      User.getTeacherDetails();
     } else {
       console.log("Not logged in");
       $location.path('/login/teacher');
@@ -27,10 +26,7 @@ angular.module('angularSocketNodeApp')
       $location.path('/class/' + name);
     }
 
-
-    // theSocket.on('class-created', function(name, number, students) {
-    //   console.log(name, number, students);
-    //   //User.addClass(name, number, students);
-    //   $scope.groups = User.getGroups();
-    // });
+    $scope.logoutTeacher = function() {
+      User.logOutTeacher();
+    }
 });

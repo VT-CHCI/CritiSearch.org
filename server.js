@@ -294,10 +294,33 @@ io.sockets.on('connection', function (socket) {
         console.log("User match");
         connectionInfo['teacherId'] = results[0].id;
 
-        socket.emit('login-teacher-done', {success: true});
+        var data = {
+          success: true,
+          username: results[0].name,
+          uid: results[0].id
+        }
+
+        socket.emit('login-teacher-done', data);
 
         getClasses(connectionInfo, socket);
       }
+    });
+  });
+
+  socket.on('teacher-details', function(id) {
+    connectionInfo['teacherId'] = id;
+    var teacherDetails = 'SELECT * FROM users WHERE id=?';
+    connection.query(teacherDetails, [id], function(error, results) {
+      console.log("COOKIES RESULTS");
+      console.log(id);
+      console.log(results[0]);
+      var details = {};
+      details.username = results[0].name;
+      details.uid = results[0].id;
+
+      getClasses(connectionInfo, socket);
+
+      socket.emit('teacher-details-done', details);
     });
   });
 
@@ -334,12 +357,10 @@ io.sockets.on('connection', function (socket) {
     console.log("Deleting class " + id);
     var deleteQuery = 'DELETE FROM critisearch_role_memberships WHERE gid=?;';
     connection.query(deleteQuery, [id], function(error, results) {
-      console.log(results);
     });
     deleteQuery = 'DELETE FROM critisearch_groups WHERE gid=?;';
     connection.query(deleteQuery, [id], function(error, results) {
-      console.log(results);
-      socket.emit('class-deleted');
+      socket.emit('class-deleted', id);
     });
   });
 

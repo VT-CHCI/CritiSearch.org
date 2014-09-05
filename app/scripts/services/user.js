@@ -2,7 +2,7 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .service('User', function (theSocket, $location) {
+  .service('User', function (theSocket, $location, $cookies) {
   
   var userService = this;
   this.username = '';
@@ -16,8 +16,9 @@ angular.module('angularSocketNodeApp')
     students: []
   }
   
-  this.teacherLoggedIn = function () {
-    return userService.authenticated;
+  this.getTeacherDetails = function () {
+    console.log("COOKIES ID " + $cookies.id);
+    theSocket.emit('teacher-details', $cookies.id);
   };
 
   this.addClass = function(className, number, classStudents) {
@@ -26,6 +27,17 @@ angular.module('angularSocketNodeApp')
       name: className,
       students: classStudents
     })
+  }
+
+  this.deleteClass = function(id) {
+    //Did not use filter becuase it is not suppored on IE 8 or earlier
+
+    var size = userService.groups.length;
+    for (var i = 0; i < size; i++) {
+      if (userService.groups[i].groupId == id) {
+        userService.groups.splice(i, 1);
+      }
+    }
   }
 
   this.setUserId = function(id) {
@@ -74,15 +86,24 @@ angular.module('angularSocketNodeApp')
   theSocket.on('login-teacher-done', function(data){
     console.log(data);
     if (data.success) {
+      $cookies.isLoggedIn = true;
+      $cookies.id = data.uid;
       userService.username = data.username;
       userService.uid = data.uid;
       userService.authenticated = true;
-      console.log(userService.authenticated);
       $location.path('/teacher');
     }
   });
 
+  theSocket.on('teacher-details-done', function(data) {
+    userService.username = data.username;
+    userService.uid = data.uid;
+    userService.authenticated = true;
+  })
+
   theSocket.on('classes-loaded', function(results) {
+    console.log("loading classes");
+    console.log(results);
     var classes = [];
     for (var i = 0; i < results.length; i++) {
       var users = [];
@@ -95,7 +116,6 @@ angular.module('angularSocketNodeApp')
       classes.push({className: results[i].name, users: users, groupId: results[i].gid});
     }
     userService.groups = classes;
-    console.log(userService.groups);
   });
 
   theSocket.on('login-student-done', function(data){
@@ -125,6 +145,8 @@ angular.module('angularSocketNodeApp')
     userService.username = '';
     userService.uid = '';
     userService.authenticated = false;
-    $location.path('/login');
+    $cookies.id = 0;
+    $cookies.isLoggedIn = false;
+    $location.path('/login/teacher');
   }
 });
