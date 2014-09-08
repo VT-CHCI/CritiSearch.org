@@ -206,6 +206,14 @@ function getClasses(connectionInfo, socket) {
 }
 
 /**
+ * Get a random key. used by cookies
+ * Packaged in a function for readability
+ */
+function getKey() {
+  return Math.floor((Math.random() * 999999999) + 1);
+}
+
+/**
  * ~~ Activity ~~
  * The main functions of the server, listening for events on the client
  * side and responding appropriately.
@@ -297,7 +305,8 @@ io.sockets.on('connection', function (socket) {
         var data = {
           success: true,
           username: results[0].name,
-          uid: results[0].id
+          uid: results[0].id,
+          key: getKey()
         }
 
         socket.emit('login-teacher-done', data);
@@ -307,16 +316,52 @@ io.sockets.on('connection', function (socket) {
     });
   });
 
+  socket.on('check-cookies', function(cookies) {
+    console.log('checking cookies');
+    console.log(cookies);
+    var cookieCheck = 'SELECT * FROM critisearch_cookies WHERE cookie_key=?';
+    connection.query(cookieCheck, [cookies.key], function(error, results) {
+      if (results.length > 0) {
+        console.log(results);
+        var data = {uid: cookies.uid};
+        for (var i = 0; i < results.length; i++) {
+          if (results[i].uid == cookies.uid) {
+            data.newKey = getKey();
+            console.log('FOUND COOKIES');
+            socket.emit('cookies-login', data);
+          }
+        }
+      }
+    });
+  });
+
+  socket.on('update-cookies', function(cookies) {
+    var removeKey = "DELETE FROM critisearch_cookies WHERE uid=?"
+    connection.query(removeKey, [cookies.uid], function(error, results) {
+      console.log("remove");
+      console.log(error);
+    });
+
+    var updateKey = "INSERT INTO critisearch_cookies (uid, cookie_key) values (?, ?)";
+    connection.query(updateKey, [cookies.uid, cookies.key], function(error, results) {
+      console.log(error);
+      console.log(results);
+      socket.emit('cookies-updated');
+    });
+  });
+
   socket.on('teacher-details', function(id) {
+    console.log(id);
     connectionInfo['teacherId'] = id;
     var teacherDetails = 'SELECT * FROM users WHERE id=?';
     connection.query(teacherDetails, [id], function(error, results) {
-      console.log("COOKIES RESULTS");
+      console.log("GETTING DETAILS");
       console.log(id);
       console.log(results[0]);
-      var details = {};
-      details.username = results[0].name;
-      details.uid = results[0].id;
+      var details = {
+        username: results[0].name,
+        uid: results[0].id
+      }
 
       getClasses(connectionInfo, socket);
 

@@ -6,8 +6,8 @@ angular.module('angularSocketNodeApp')
     $scope.userService = User;
     $scope.currentClass = User.getCurrentGroup();
 
-    console.log(User.teacherLoggedIn());
-    if (User.teacherLoggedIn()) {
+    console.log(User.isAuthenticated());
+    if (User.isAuthenticated()) {
       theSocket.emit('teacher', User.getCurrentGroup().id);
     } else {
       console.log("Not logged in");

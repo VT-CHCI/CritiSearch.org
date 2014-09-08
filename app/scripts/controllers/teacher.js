@@ -6,10 +6,9 @@ angular.module('angularSocketNodeApp')
     $scope.className = '';
     $scope.number;
 
-    console.log("Cookies, isLoggedIn:");
-    console.log($cookies.isLoggedIn);
-    if ($cookies.isLoggedIn == true) {
-      User.getTeacherDetails();
+
+    if (User.isAuthenticated()) {
+      ///////////// dunno yet
     } else {
       console.log("Not logged in");
       $location.path('/login/teacher');
