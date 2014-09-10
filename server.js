@@ -452,20 +452,37 @@ io.sockets.on('connection', function (socket) {
     console.log(msg.data);
   });
 
-  socket.on('promoted', function(id) {
+  socket.on('promoted', function(result) {
     var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
-    connection.query(promotedQuery, [3, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, id], function(error, results) {
-      console.log(error);
-      console.log(results);
-    });
+    if (result.uid == '') {
+      connection.query(promotedQuery, [3, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {
+      });
+    } else {
+      connection.query(promotedQuery, [3, new Date(), result.uid, connectionInfo.currentQuery, result.id], function(error, results) {
+      });
+    }
   });
 
-  socket.on('demoted', function(id) {
+  socket.on('demoted', function(result) {
     var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
-    connection.query(promotedQuery, [4, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, id], function(error, results) {
-      console.log(error);
-      console.log(results);
-    });
+    if (result.uid == '') {
+      connection.query(promotedQuery, [4, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {
+      });
+    } else {
+      connection.query(promotedQuery, [4, new Date(), result.uid, connectionInfo.currentQuery, result.id], function(error, results) {
+      });
+    }
+  });
+
+  socket.on('follow', function(result) {
+    var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
+    if (result.uid == '') {
+      connection.query(promotedQuery, [2, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {
+      });
+    } else {
+      connection.query(promotedQuery, [2, new Date(), result.uid, connectionInfo.currentQuery, result.id], function(error, results) {
+      });
+    }
   });
 
 

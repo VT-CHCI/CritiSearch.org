@@ -3,6 +3,6 @@
 			<button type="button" class="btn btn-success" ng-click="promote(result)"><i class="glyphicon glyphicon-thumbs-up"></i></button>
   			<button type="button" class="btn btn-danger" ng-click="demote(result)"><i class="glyphicon glyphicon-thumbs-down"></i></button>
 	</div>
-  <a ng-href="{{result.link}}" target="_blank">{{result.title}}</a>
+  <a ng-href="{{result.link}}" target="_blank" ng-click="follow(result)">{{result.title}}</a>
   <p>{{result.description}}</p>
 </li>
