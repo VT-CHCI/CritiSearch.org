@@ -376,7 +376,8 @@ io.sockets.on('connection', function (socket) {
     var newClassQuery = 'insert into critisearch_groups(name, owner) values (?, ?)';
     console.log(connectionInfo.teacherId);
     connection.query(newClassQuery, [name, connectionInfo.teacherId], function(error, results) {
-
+      console.log("create class");
+      console.log(results);
       var groupId = results.insertId;
 
       var teacherRole = 'insert into critisearch_role_memberships (uid, role_id, gid) values (?, ?, ?)';
@@ -484,6 +485,12 @@ io.sockets.on('connection', function (socket) {
       });
     }
   });
+
+  socket.on('log-out-class', function(classId) {
+    //broadcast to the group of students.
+    console.log('log out the entire class: ' + classId);
+    //students must be added to a group.
+  })
 
 
   /**

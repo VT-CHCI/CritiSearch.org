@@ -73,6 +73,11 @@ body {
     width: 100%;
 }
 
+.link {
+    color: gray;
+    font-size: 10px;
+}
+
 .button-nav:hover {
     background-color: white;
 }
