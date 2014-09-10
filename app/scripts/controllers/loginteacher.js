@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('LogInTeacherCtrl', function ($scope, User, md5, theSocket, $routeParams, $location, $cookieStore) {
+  .controller('LogInTeacherCtrl', function ($scope, User, md5, theSocket, $routeParams, $location, $cookieStore, $cookies) {
 
   console.log("Login");
 
@@ -17,13 +17,11 @@ angular.module('angularSocketNodeApp')
   This structure idea came from this article:
   http://fishbowl.pastiche.org/2004/01/19/persistent_login_cookie_best_practice/
   */
-  // if (typeof  !== 'undefined') {
-  //   var cookies = {
-  //     uid: $cookieStore.get('uid'),
-  //     key: md5.createHash($cookieStore.get('key').toString())
-  //   }
-  //   theSocket.emit('check-cookies', cookies);
-  // }
+  var cookie = {
+    uid: $cookies.uid,
+    key: md5.createHash($cookies.key.toString())
+  }
+  theSocket.emit('check-cookies', cookie);
 
   $scope.logIn = function() {
     console.log($scope.username);

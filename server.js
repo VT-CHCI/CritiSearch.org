@@ -452,9 +452,17 @@ io.sockets.on('connection', function (socket) {
     console.log(msg.data);
   });
 
-  socket.on('promoted', function() {
-    var promotedQuery = 'insert into critisearch_events (type, time, client, result) values (?, ?, ?, ?)';
-    connection.query(promotedQuery, [3, new Date(), connectionInfo.dbId, 1], function(error, results) {
+  socket.on('promoted', function(id) {
+    var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
+    connection.query(promotedQuery, [3, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, id], function(error, results) {
+      console.log(error);
+      console.log(results);
+    });
+  });
+
+  socket.on('demoted', function(id) {
+    var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
+    connection.query(promotedQuery, [4, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, id], function(error, results) {
       console.log(error);
       console.log(results);
     });
@@ -477,11 +485,8 @@ io.sockets.on('connection', function (socket) {
     }
     console.log('SEARCHING ' + details.query, searcher, new Date());
     connection.query(newQuery, [details.query, searcher, new Date()], function(error, results){
-      console.log(error);
-      console.log(results);
       if (results.hasOwnProperty('insertId')) {
         var id = results.insertId;
-        console.log('query db id:', id);
         connectionInfo['currentQuery'] = id;
 
         //Log the query event to the database
@@ -496,7 +501,6 @@ io.sockets.on('connection', function (socket) {
       var processedResults = getProcessedResults(results);
 
       async.parallel(getTasks(processedResults, connectionInfo), function(error, results) {
-        console.log('parallel callback');
         socket.emit('search-results', results);
       });
 
@@ -517,5 +521,16 @@ io.sockets.on('connection', function (socket) {
       // }
 
     });
+  });
+
+  socket.on('critisort', function (uid) {
+    var newEvent = 'insert into critisearch_events (type, time, client, query) values (?, ?, ?, ?)';
+    if (uid == '') {
+      connection.query(newEvent, [5, new Date(), connectionInfo.dbId, connectionInfo.currentQuery], function(error, results) {
+      });
+    } else {
+      connection.query(newEvent, [5, new Date(), uid, connectionInfo.currentQuery], function(error, results) {
+      });
+    }
   });
 });

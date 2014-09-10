@@ -3,7 +3,7 @@
     <button type="button" class="btn btn-lg btn-primary critisort" data-toggle="button" ng-click="logIn()" ng-show="loggedIn == false">Log In</button>
     <p class="student-login" ng-show="loggedIn == true">Logged in as:</p>
     <!-- display the current username here -->
-    <p class="username"></p>
+    <h3 class="username">{{userService.username}}</h3>
   </div>
   <div class="col-md-9">
     <form role="form" ng-submit="searchSubmitted()">

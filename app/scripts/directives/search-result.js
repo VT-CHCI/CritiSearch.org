@@ -8,15 +8,13 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
       result: '=model'
     },
     link: function(scope, element, attrs) {
-      element.click(function(){
-        console.log('hey!');
-      });
       scope.showButtons = function() {
         element.find(".like_dislike").toggle();
       };
       scope.promote = function(result) {
+        console.log("Promote:");
         console.log(result);
-        theSocket.emit('promoted');
+        theSocket.emit('promoted', result.id);
 
         if (result.status !== 1) {
           console.log("status being set to 1");
@@ -28,6 +26,7 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
       };
       scope.demote = function(result) {
         console.log(result);
+        theSocket.emit('demoted', result.id);
         if (result.status !== -1) {
           result.status = -1;
         } else {

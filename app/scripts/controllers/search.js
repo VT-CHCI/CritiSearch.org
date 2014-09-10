@@ -6,6 +6,7 @@ angular.module('angularSocketNodeApp')
     $scope.query = '';
     $scope.loggedIn = User.studentLoggedIn();
     $scope.results = [];
+    $scope.userService = User;
     var searchScope = $scope;
 
     $scope.searchSubmitted = function() {
@@ -37,6 +38,7 @@ angular.module('angularSocketNodeApp')
     }
 
     $scope.critiSort = function() {
+      theSocket.emit('critisort', $scope.userService.uid);
       console.log("sorting");
       if ($scope.results.length > 0) {
         var comparisons = 0,

@@ -89,8 +89,8 @@ angular.module('angularSocketNodeApp')
       userService.uid = data.uid;
       userService.authenticated = true;
 
-      $cookieStore.put('uid', data.uid);
-      $cookieStore.put('key', data.key);
+      $cookies.uid = data.uid;
+      $cookies.key = data.key;
       theSocket.emit('update-cookies', {uid: data.uid, key: md5.createHash(data.key.toString())})
       $location.path('/teacher');
     }
@@ -147,32 +147,32 @@ angular.module('angularSocketNodeApp')
     console.log('cookies returned');
     console.log(data);
 
-    $cookieStore.put('uid', data.uid);
-    $cookieStore.put('key', data.newKey);
+    $cookies.uid = data.uid;
+    $cookies.key = data.newKey;
 
-    var cookies = {
-      uid: data.uid,
-      key: md5.createHash($cookieStore.get('key').toString())
+    var cookie = {
+      uid: $cookies.uid,
+      key: md5.createHash($cookies.key.toString())
     }
 
-    theSocket.emit('update-cookies', cookies);
+    theSocket.emit('update-cookies', cookie);
     console.log("looking for details");
-    console.log($cookieStore.get('uid'));
-    theSocket.emit('teacher-details', $cookieStore.get('uid'));
+    console.log($cookies.uid);
+    theSocket.emit('teacher-details', $cookies.uid);
   })
 
   theSocket.on('cookies-updated', function() {
     console.log('cookies updated');
-    console.log($cookieStore.get('uid'));
-    console.log($cookieStore.get('key'));
+    console.log('uid: ' + $cookies.uid);
+    console.log('key: ' + $cookies.key);
   })
 
   this.logOutTeacher = function() {
     userService.username = '';
     userService.uid = '';
     userService.authenticated = false;
-    $cookieStore.put('uid', undefined);
-    $cookieStore.put('key', 0);
+    $cookies.uid = undefined;
+    $cookies.key = 0;
     $location.path('/login/teacher');
   }
 });

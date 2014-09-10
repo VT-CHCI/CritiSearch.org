@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('TeacherCtrl', function ($scope, User, theSocket, $routeParams, $location, $cookies) {
+  .controller('TeacherCtrl', function ($scope, User, theSocket, $routeParams, $location) {
     $scope.userService = User;
     $scope.className = '';
     $scope.number;
@@ -23,9 +23,5 @@ angular.module('angularSocketNodeApp')
       console.log('/class/' + name);
       User.setGroup(name, true);
       $location.path('/class/' + name);
-    }
-
-    $scope.logoutTeacher = function() {
-      User.logOutTeacher();
     }
 });
