@@ -18,9 +18,15 @@ angular.module('angularSocketNodeApp')
   http://fishbowl.pastiche.org/2004/01/19/persistent_login_cookie_best_practice/
   */
   var cookie = {
-    uid: $cookies.uid,
-    key: md5.createHash($cookies.key.toString())
+    uid: $cookies.uid
   }
+
+  if ($cookies.hasOwnProperty('key')) {
+    cookie.key = md5.createHash($cookies.key.toString());
+  } else {
+    cookie.key = -1;
+  }
+
   theSocket.emit('check-cookies', cookie);
 
   $scope.logIn = function() {

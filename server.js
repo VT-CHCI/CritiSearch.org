@@ -66,7 +66,6 @@ function getProcessedResults (results) {
       console.log("Item removed: " + results[i].title);
       resultsToSend.pop();
     } else if (results[i].hasOwnProperty('link') && results[i].link != null){
-      console.log(results[i].link);
       if (results[i].link.substr(0, youtube.length) == youtube) {
         results[i].description = "Youtube link";
       }
@@ -81,7 +80,12 @@ function getProcessedResults (results) {
 function wrapperForInsert(result, newResult, connectionInfo, i) {
   return function(callback) {
     console.log('running task i:', i);
-    console.log('running task result:', result);
+    console.log('running task result:', result.title);
+    console.log(result.link);
+    console.log(result.description);
+    console.log(i);
+    console.log(connectionInfo.currentQuery);
+    console.log(result.title);
     connection.query(newResult, [
       result.link, 
       result.description, 
@@ -91,9 +95,18 @@ function wrapperForInsert(result, newResult, connectionInfo, i) {
     ], function(error, results){
       console.log(error);
       console.log(results);
-      console.log(results.insertId);
-      result.id = results.insertId;
-      callback(null, result);
+
+  //     { [Error: ER_TRUNCATED_WRONG_VALUE_FOR_FIELD: Incorrect string value: '\xC9\xA1u\xCB\x90\xC9...' for column 'description' at row 1]
+  // code: 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD',
+  // errno: 1366,
+  // sqlState: 'HY000',
+  // index: 0 }
+
+  // happens when you query "google"
+
+      // console.log(results.insertId);
+      // result.id = results.insertId;
+      callback(error, result);
     });
   };
 }
@@ -101,14 +114,13 @@ function wrapperForInsert(result, newResult, connectionInfo, i) {
 function getTasks(processedResults, connectionInfo) {
   console.log('getTasks');
   var tasks = [];
-  for (i in processedResults) {
+  for (var i = 0; i < processedResults.length; i++) {
     var result = processedResults[i];
-    console.log(result);
+    console.log("result " + i + ": " + result.title);
     var newResult = 'insert into critisearch_results (link, description, result_order, query, title) values (?, ?, ?, ?, ?)';
     tasks.push(wrapperForInsert(result, newResult, connectionInfo, i));
-    i++;
   }
-  console.log(tasks);
+  console.log("Tasks: ------------------")
   return tasks;
 }
 
