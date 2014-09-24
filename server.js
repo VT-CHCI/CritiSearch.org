@@ -13,9 +13,9 @@ google.resultsPerPage = 3;
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
   host     : 'localhost',
-  user     : 'critisearch',
-  password : 'asdfjklj',
-  database : 'critisearch'
+  user     : 'thoughtswap',
+  password : 'thoughtswap',
+  database : 'thoughtswap'
 });
 
 connection.connect();
