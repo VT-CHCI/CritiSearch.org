@@ -130,6 +130,15 @@ angular.module('angularSocketNodeApp')
     }
   });
 
+  // logout all of the students
+  theSocket.on('logout', function() {
+    userService.username = '';
+    userService.uid = '';
+    userService.studentAuthenticated = false;
+    userService.currentGroup.id = 0;
+    $location.path('/search');
+  });
+
   theSocket.on('class-created', function(name, number, students) {
     console.log(name, number, students);
     var classStudents = [];

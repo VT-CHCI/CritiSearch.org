@@ -28,6 +28,7 @@ angular.module('angularSocketNodeApp')
 
     $scope.logOutAll = function() {
       theSocket.emit('log-out-class', $scope.currentClass.id);
+      console.log("Logout all students");
 
       //send an event to the group
       //have the students listen for the event

@@ -7,15 +7,15 @@ var google = require('google');
 var async = require('async');
 
 // Limit the results per page for testing
-google.resultsPerPage = 3;
+google.resultsPerPage = 25;
 // var nextCounter = 0;
 
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
   host     : 'localhost',
-  user     : 'thoughtswap',
-  password : 'thoughtswap',
-  database : 'thoughtswap'
+  user     : 'critisearch',
+  password : 'asdfjklj',
+  database : 'critisearch'
 });
 
 connection.connect();
@@ -116,6 +116,7 @@ function getTasks(processedResults, connectionInfo) {
   var tasks = [];
   for (var i = 0; i < processedResults.length; i++) {
     var result = processedResults[i];
+    result.order = i;
     console.log("result " + i + ": " + result.title);
     var newResult = 'insert into critisearch_results (link, description, result_order, query, title) values (?, ?, ?, ?, ?)';
     tasks.push(wrapperForInsert(result, newResult, connectionInfo, i));
@@ -444,6 +445,7 @@ io.sockets.on('connection', function (socket) {
       connection.query(findGroup, [user.id], function(error, results) {
         if (error == null) {
           user.groupId = results[0].gid;
+          socket.join(user.groupId);
           socket.emit('login-student-done', user);
         }
       })
@@ -452,7 +454,7 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('teacher', function(groupId) {
     console.log('Teacher Joined')
-    socket.join('teacher ' + groupId);
+    socket.join(groupId);
     var oldResults = 'SELECT q.query FROM critisearch_queries q ' +
       'join critisearch_role_memberships m on m.uid=q.searcher ' +
       'where m.gid=? and time > date_sub(now(),INTERVAL 90 MINUTE) order by time desc;';
@@ -499,9 +501,8 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('log-out-class', function(classId) {
-    //broadcast to the group of students.
+    socket.broadcast.to(classId).emit('logout');
     console.log('log out the entire class: ' + classId);
-    //students must be added to a group.
   })
 
 
@@ -510,7 +511,7 @@ io.sockets.on('connection', function (socket) {
    */
   socket.on('q', function(details) {
     console.log("Group: " + details.group.id);
-    socket.broadcast.to('teacher ' + details.group.id).emit('query', details.query);
+    socket.broadcast.to(details.group.id).emit('query', details.query);
 
     var newQuery = 'insert into critisearch_queries (query, searcher, time) values (?, ?, ?)';
     var searcher;

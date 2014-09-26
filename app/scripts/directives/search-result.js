@@ -9,7 +9,7 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
     },
     link: function(scope, element, attrs) {
       scope.userService = User;
-
+      
       scope.showButtons = function() {
         element.find(".like_dislike").toggle();
       };
