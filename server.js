@@ -7,7 +7,7 @@ var google = require('google');
 var async = require('async');
 
 // Limit the results per page for testing
-google.resultsPerPage = 6;
+google.resultsPerPage = 10;
 // var nextCounter = 0;
 
 var mysql      = require('mysql');
