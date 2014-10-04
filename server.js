@@ -7,15 +7,15 @@ var google = require('google');
 var async = require('async');
 
 // Limit the results per page for testing
-google.resultsPerPage = 25;
+google.resultsPerPage = 6;
 // var nextCounter = 0;
 
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
   host     : 'localhost',
-  user     : 'critisearch',
-  password : 'asdfjklj',
-  database : 'critisearch'
+  user     : 'thoughtswap',
+  password : 'thoughtswap',
+  database : 'thoughtswap'
 });
 
 connection.connect();
