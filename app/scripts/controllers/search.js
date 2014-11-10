@@ -48,8 +48,8 @@ angular.module('angularSocketNodeApp')
     }
 
     $scope.critiSort = function() {
-      $location.hash('search');
-      $anchorScroll();
+      //$location.hash('search');
+      // $anchorScroll();
       theSocket.emit('critisort', $scope.userService.uid);
       console.log("sorting");
       if ($scope.results.length > 0) {
