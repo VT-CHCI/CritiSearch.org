@@ -7,7 +7,9 @@ angular.module('angularSocketNodeApp')
   $scope.logIn = function() {
     console.log($scope.sillyname);
     User.logInStudent($scope.sillyname);
-  }
+  };
+
+  $scope.errorMessage = '';
 
   theSocket.on('login-student-done', function(results) {
     if (results.success) {
@@ -20,6 +22,7 @@ angular.module('angularSocketNodeApp')
       $location.path('/search');
     } else {
       console.log("login failed");
+      $scope.errorMessage = results.message;
     }
   });
 });

@@ -432,23 +432,37 @@ io.sockets.on('connection', function (socket) {
 
     var newUser = 'select * from users where name=?';
     connection.query(newUser, [details.sillyname], function(error, results) {
-      results[0].success = false;
-      console.log("Looking for " + results[0].name);
-      if (details.sillyname == results[0].name) {
-        results[0].success = true;
-        console.log("User match");
-      }
+      // should be checking the error
 
-      var user = results[0];
-
-      var findGroup = 'select * from critisearch_role_memberships where uid=?';
-      connection.query(findGroup, [user.id], function(error, results) {
-        if (error == null) {
-          user.groupId = results[0].gid;
-          socket.join(user.groupId);
-          socket.emit('login-student-done', user);
+      // results probably has length 0
+      // console.log(results);
+      // console.log(results.length);
+      
+      if (results.length > 0) {
+        results[0].success = false;
+        console.log("Looking for " + results[0].name);
+        if (details.sillyname == results[0].name) {
+          results[0].success = true;
+          console.log("User match");
         }
-      })
+
+        var user = results[0];
+
+        var findGroup = 'select * from critisearch_role_memberships where uid=?';
+        connection.query(findGroup, [user.id], function(error, results) {
+          if (error == null) {
+            user.groupId = results[0].gid;
+            socket.join(user.groupId);
+            socket.emit('login-student-done', user);
+          }
+        })
+      } else { //this is for if the user DNE
+        socket.emit('login-student-done', {
+          success: false,
+          message: 'incorrect username.'
+        });
+        // TODO: send back a message that the user does not exist
+      }
     });
   });
 
