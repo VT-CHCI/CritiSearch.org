@@ -37,7 +37,7 @@ var Cookie = sequelize.define('cookie', {
 let ROLES = {
   PARTICIPANT: 'participant',
   FACILITATOR: 'facilitator'
-},
+};
 
 var User = sequelize.define('user', {
   name: {type: Sequelize.STRING, unique: true},
