@@ -1,25 +1,4 @@
-var express = require('express');
-var app = express();
-// var pg = require('pg');  //Commented out until database implementation
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-var google = require('google');
-var async = require('async');
-
-// Limit the results per page for testing
-google.resultsPerPage = 10;
-// var nextCounter = 0;
-
-var mysql      = require('mysql');
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'thoughtswap',
-  password : 'thoughtswap',
-  database : 'thoughtswap'
-});
-
-connection.connect();
-// connection.end();
+'use strict';
 
 //-------------------------------------------------------------------------
 /**
@@ -32,20 +11,44 @@ connection.connect();
  */
 //-------------------------------------------------------------------------
 
+var express = require('express');
+var app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http); // api docs: http://socket.io
+var google = require('google'); // api docs: https://www.npmjs.com/package/google
+// var async = require('async');  //probbaly shouldn't need this now with promises
+var models = require('./models');
+var _ = require('lodash');
+
+// Limit the results per page for testing
+google.resultsPerPage = 10;
+
 /**
  * ~~ Initialization ~~
  * Steps required to start up the app and provide future functions with
  * variables they will use.
  */
-  app.use(express.static(__dirname + '/app'));
+models.start()
+  .then(function() {
+    // here we will put any code that should wait for the db to be ready.
 
-  var port = 3017;
-  http.listen(port, function (){
-    console.log('listening on *:', port);
+    // serve static files from the app directory, directly, without "app/" in URL
+    app.use(express.static(__dirname + '/app'));
+
+    var port = 3017;
+    http.listen(port, function (){
+      console.log('listening on *:', port);
+    });
+
   });
+
+
+
+
 
 //-------------------------------------------------------------------------
 
+// filters out google's enhanced results
 function getProcessedResults (results) {
   var resultsToSend = [];
   for (var i=0; i<results.length; i++) {
@@ -77,119 +80,48 @@ function getProcessedResults (results) {
   return resultsToSend;
 }
 
-function wrapperForInsert(result, newResult, connectionInfo, i) {
-  return function(callback) {
-    console.log('running task i:', i);
-    console.log('running task result:', result.title);
-    console.log(result.link);
-    console.log(result.description);
-    console.log(i);
-    console.log(connectionInfo.currentQuery);
-    console.log(result.title);
-    connection.query(newResult, [
-      result.link, 
-      result.description, 
-      i, 
-      connectionInfo.currentQuery, 
-      result.title
-    ], function(error, results){
-      console.log(error);
-      console.log(results);
-
-  //     { [Error: ER_TRUNCATED_WRONG_VALUE_FOR_FIELD: Incorrect string value: '\xC9\xA1u\xCB\x90\xC9...' for column 'description' at row 1]
-  // code: 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD',
-  // errno: 1366,
-  // sqlState: 'HY000',
-  // index: 0 }
-
-  // happens when you query "google"
-
-      // console.log(results.insertId);
-      // result.id = results.insertId;
-      callback(error, result);
-    });
-  };
-}
-
-function getTasks(processedResults, connectionInfo) {
-  console.log('getTasks');
-  var tasks = [];
-  for (var i = 0; i < processedResults.length; i++) {
-    var result = processedResults[i];
-    result.order = i;
-    console.log("result " + i + ": " + result.title);
-    var newResult = 'insert into critisearch_results (link, description, result_order, query, title) values (?, ?, ?, ?, ?)';
-    tasks.push(wrapperForInsert(result, newResult, connectionInfo, i));
-  }
-  console.log("Tasks: ------------------")
-  return tasks;
-}
-
 //got the lists for this from: http://stackoverflow.com/q/16826200/1449799
+let FIRST_NAME = ["Runny", "Buttercup", "Dinky", "Stinky", "Crusty",
+"Greasy","Gidget", "Cheesypoof", "Lumpy", "Wacky", "Tiny", "Flunky",
+"Fluffy", "Zippy", "Doofus", "Gobsmacked", "Slimy", "Grimy", "Salamander",
+"Oily", "Burrito", "Bumpy", "Loopy", "Snotty", "Irving", "Egbert", "Waffer", "Lilly","Rugrat","Sand", "Fuzzy","Kitty",
+ "Puppy", "Snuggles","Rubber", "Stinky", "Lulu", "Lala", "Sparkle", "Glitter",
+ "Silver", "Golden", "Rainbow", "Butt", "Rain", "Stormy", "Wink", "Sugar",
+ "Twinkle", "Star", "Halo", "Angel"];
+
+let LAST_NAME_1 = ["Snicker", "Buffalo", "Gross", "Bubble", "Sheep",
+ "Corset", "Toilet", "Lizard", "Waffle", "Kumquat", "Burger", "Chimp", "Liver",
+ "Gorilla", "Rhino", "Emu", "Pizza", "Toad", "Gerbil", "Pickle", "Tofu", 
+"Chicken", "Potato", "Hamster", "Lemur", "Vermin"];
+
+let LAST_NAME_2 = ["face", "dip", "nose", "brain", "head", "breath", 
+"pants", "shorts", "lips", "mouth", "muffin", "butt", "bottom", "elbow", 
+"honker", "toes", "buns", "spew", "kisser", "fanny", "squirt", "chunks", 
+"brains", "wit", "juice", "shower"];
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
  
 function getName() {
-  var firstName = ["Runny", "Buttercup", "Dinky", "Stinky", "Crusty",
-  "Greasy","Gidget", "Cheesypoof", "Lumpy", "Wacky", "Tiny", "Flunky",
-  "Fluffy", "Zippy", "Doofus", "Gobsmacked", "Slimy", "Grimy", "Salamander",
-  "Oily", "Burrito", "Bumpy", "Loopy", "Snotty", "Irving", "Egbert", "Waffer", "Lilly","Rugrat","Sand", "Fuzzy","Kitty",
-   "Puppy", "Snuggles","Rubber", "Stinky", "Lulu", "Lala", "Sparkle", "Glitter",
-   "Silver", "Golden", "Rainbow", "Butt", "Rain", "Stormy", "Wink", "Sugar",
-   "Twinkle", "Star", "Halo", "Angel"];
- 
-  // var middleName =["Waffer", "Lilly","Rugrat","Sand", "Fuzzy","Kitty",
-  //  "Puppy", "Snuggles","Rubber", "Stinky", "Lulu", "Lala", "Sparkle", "Glitter",
-  //  "Silver", "Golden", "Rainbow", "Butt", "Rain", "Stormy", "Wink", "Sugar",
-  //  "Twinkle", "Star", "Halo", "Angel"];
- 
-  var lastName1 = ["Snicker", "Buffalo", "Gross", "Bubble", "Sheep",
-   "Corset", "Toilet", "Lizard", "Waffle", "Kumquat", "Burger", "Chimp", "Liver",
-   "Gorilla", "Rhino", "Emu", "Pizza", "Toad", "Gerbil", "Pickle", "Tofu", 
-  "Chicken", "Potato", "Hamster", "Lemur", "Vermin"];
- 
-  var lastName2 = ["face", "dip", "nose", "brain", "head", "breath", 
-  "pants", "shorts", "lips", "mouth", "muffin", "butt", "bottom", "elbow", 
-  "honker", "toes", "buns", "spew", "kisser", "fanny", "squirt", "chunks", 
-  "brains", "wit", "juice", "shower"];
- 
-  function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-  }
- 
-  return firstName[getRandomInt(0, firstName.length)] + " " + 
-    // middleName[getRandomInt(0, middleName.length)] + " " +
-    lastName1[getRandomInt(0, lastName1.length)] + 
-    lastName2[getRandomInt(0, lastName2.length)];
+  return FIRST_NAME[getRandomInt(0, firstName.length)] + " " + 
+    LAST_NAME_1[getRandomInt(0, lastName1.length)] + 
+    LAST_NAME_2[getRandomInt(0, lastName2.length)];
 }
 
 /**
  * add a student to the user table
  */
-function addStudent(classId, cb) {
+function addStudent(classId) {
   var name = getName();
-  var searchName = 'select * from users where name=?';
-  connection.query(searchName, [name], function(error, results) {
-    // cgeck err
-    if (results.length > 0) {
-      console.log("Name taken, chosing a new name");
-      addStudent(classId, cb);
-    } else {
-      var addStudent = 'insert into users (name) values (?)';
-      connection.query(addStudent, [name], function(error, results) {
-        var userId = results.insertId;
-        var membershipQuery = 'insert into critisearch_role_memberships (uid, role_id, gid) values (?, ?, ?)';
-        connection.query(membershipQuery, [userId, 2, classId], function(error, results) {
-          console.log("Added user " + userId + " to class " + classId);
-          if (error) {
-            cb(error);
-          } else if (results) {
-            console.log(results);
-            cb(null, {username:name});
-          }
-        });
-      });
-    }
-  });
-  // return {username: name};
+  return models.User.findOrCreate({where: {name:name, role: models.ROLES.PARTICIPANT}})
+    .spread(function (thisUser, created) {
+      if (created) {
+        return thisUser;
+      } else {
+        return addStudent(classId);
+      }
+    });
 }
 
 /**
@@ -198,24 +130,17 @@ function addStudent(classId, cb) {
  */
 function getNames(count, classId) {
   var names = [];
-  for (var i = 0; i < count; i++) {
-    names.push(function(cb) {
-      addStudent(classId, cb);
-    });
-  }
-  return names;
+  // mdn is really the best js resource
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
+  return Promise.all(_.range(count).map(function () {
+    return addStudent(classId);  // TODO: is this a race condition for unique sillynames?
+  }));
 }
 
-function getClasses(connectionInfo, socket) {
-  var detailsQuery = 'SELECT g.name as "name", others.name as "username", g.gid ' +
-    'from critisearch_groups g ' +
-    'JOIN critisearch_role_memberships m on m.gid=g.gid and m.role_id=2 ' +
-    'join users others on others.id = m.uid ' +
-    'WHERE g.owner=? order by g.gid;';
-  connection.query(detailsQuery, [connectionInfo.teacherId], function(error, results) {
-    //console.log(results);
-    socket.emit('classes-loaded', results);
-  });
+// getCLasses used to use the socket to emit the result. now we will make the caller do this
+
+function getClasses(teacher) { // teacher is a user obj
+  return teacher.getGroups();
 }
 
 /**
@@ -232,29 +157,45 @@ function getKey() {
  * side and responding appropriately.
  */
 io.sockets.on('connection', function (socket) {
-  console.log('>> Client Connected  >> ');
+  let connectedAt = new  Date();
+  console.log('>> Client Connected  >> ', connectedAt);
   var connectionInfo = {};
 
-  var addClientQuery = 'insert into critisearch_clients (socket, connect) values (?, ?)';
-  connection.query(addClientQuery, [socket.id, new Date()], function(error, results){
-    console.log(error);
-    console.log(results);
-    if (results.hasOwnProperty('insertId')) {
-      connectionInfo['dbId'] = results.insertId;
+  models.Client.create({
+    where: {
+      socketid: socket.id,
+      connected: connectedAt
     }
-  });
+  })
+    .then(function (newClient) {
+      console.log('newclient created with id', newClient.id);
+      connectionInfo['dbId'] = newClient.id;
+    });
+    // .then store the client db id?
+
+  // var addClientQuery = 'insert into critisearch_clients (socket, connect) values (?, ?)';
+  // connection.query(addClientQuery, [socket.id, new Date()], function(error, results){
+  //   console.log(error);
+  //   console.log(results);
+  //   if (results && results.hasOwnProperty('insertId')) {
+  //     connectionInfo['dbId'] = results.insertId;
+  //   }
+  // });
   
   /**
    * Will catch when a client leaves the app interface entirely and send
    * out the updated number of connected students for the teacher view.
    */
   socket.on('disconnect', function () {
-    console.log('<< Client Disconnected << ');
+    let disconnectedAt = new Date();
+    console.log('<< Client with id', socket.id, 'Disconnected at time', disconnectedAt, '<<');
 
-    var addDisconnectTime = 'update critisearch_clients set disconnect = ? where id = ?';
-    connection.query(addDisconnectTime, [new Date(), connectionInfo.dbId], function(error, results){
-      console.log(error);
-      console.log(results);
+    return Client.findOne({
+      where: {
+        socketid: socket.id
+      }
+    }).then(function (newlyDisconnectedClient) {
+      return newlyDisconnectedClient.setDisconnected(disconnectedAt);
     });
   });
 

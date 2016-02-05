@@ -22,7 +22,7 @@ angular
     ])
 
 .factory('theSocket', function(socketFactory) {
-    var myIoSocket = io.connect('/');
+    var myIoSocket = io.connect('http://localhost:3017/');
 
     var theSocket = socketFactory({
         ioSocket: myIoSocket
