@@ -5,7 +5,7 @@ var sequelize = new Sequelize(
   process.env.CS_DB, // database name
   process.env.CS_USER, // username
   process.env.CS_PASS, // password
-  { logging: function () {} }
+  { logging: false }
 );
 
 var DROPTABLES = false;
@@ -31,7 +31,7 @@ var Client = sequelize.define('client', {
 
 var Cookie = sequelize.define('cookie', {
   key: Sequelize.STRING,
-  uid: Sequelize.STRING,
+  uid: {type: Sequelize.STRING, unique: true},
 });
 
 let ROLES = {
@@ -43,9 +43,7 @@ var User = sequelize.define('user', {
   name: {type: Sequelize.STRING, unique: true},
   password: Sequelize.STRING,
   email: Sequelize.STRING,
-  role: Sequelize.ENUM(
-    ROLES.facilitator,
-    ROLES.participant)
+  role: Sequelize.ENUM(ROLES.FACILITATOR, ROLES.PARTICIPANT)
 });
 
 var Query = sequelize.define('query', {
@@ -63,8 +61,10 @@ var Membership = sequelize.define('membership', {
 
 // these area all sequelize fns
 // http://docs.sequelizejs.com/en/latest/docs/associations/#belongs-to-many-associations
-User.belongsToMany(Group, {through: 'Membership'});
-Group.belongsToMany(User, {through: 'Membership'});
+User.belongsToMany(Group, {through: Membership});
+Group.belongsToMany(User, {through: Membership});
+
+Group.belongsTo(User, {as: 'owner'});
 
 // User.hasMany(Query, {through: 'Membership'});  //will this work
 Query.belongsTo(Membership, {as: 'author'});
@@ -87,8 +87,8 @@ exports.start = function () {
         where: {
           email: 'teacher@critisearch.org',
           name: 'teacher',
-          password: '8d788385431273d11e8b43bb78f3aa41', // md5 hash of test
-          role: 'facilitator'
+          password: '8d788385431273d11e8b43bb78f3aa41', // md5 hash of teacher
+          role: ROLES.FACILITATOR
         } 
       })
         .spread(function (userResults) {
@@ -96,6 +96,7 @@ exports.start = function () {
           return Group.findOrCreate({
             where: {
               name: 'TestClass',
+              ownerId: userResults.id
               // ownerId: userResults[0].dataValues.id,
             } 
           })

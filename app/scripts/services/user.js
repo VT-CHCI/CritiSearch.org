@@ -71,7 +71,7 @@ angular.module('angularSocketNodeApp')
   };
 
   this.logInTeacher = function(username, password) {
-    theSocket.emit('login-teacher', {username:username, password:password});
+    theSocket.emit('login-teacher', {username: username, password: password});
   };
 
   this.logInStudent = function(name) {
@@ -85,9 +85,10 @@ angular.module('angularSocketNodeApp')
   theSocket.on('login-teacher-done', function(data){
     console.log(data);
     if (data.success) {
-      userService.username = data.username;
+      userService.username = data.user.name;
       userService.uid = data.uid;
       userService.authenticated = true;
+      userService.groups = data.user.groups;
 
       $cookies.uid = data.uid;
       $cookies.key = data.key;

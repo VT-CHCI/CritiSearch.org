@@ -190,12 +190,14 @@ io.sockets.on('connection', function (socket) {
     let disconnectedAt = new Date();
     console.log('<< Client with id', socket.id, 'Disconnected at time', disconnectedAt, '<<');
 
-    return Client.findOne({
+    return models.Client.findOne({
       where: {
         socketid: socket.id
       }
     }).then(function (newlyDisconnectedClient) {
-      return newlyDisconnectedClient.setDisconnected(disconnectedAt);
+      if (newlyDisconnectedClient) {
+        return newlyDisconnectedClient.setDisconnected(disconnectedAt);
+      }
     });
   });
 
@@ -246,62 +248,75 @@ io.sockets.on('connection', function (socket) {
   socket.on('login-teacher', function(details) {
     console.log('Searching for ' + details.username + ', ' + details.password);
 
-    var newUser = 'select * from users where name=?';
-    connection.query(newUser, [details.username], function(error, results) {
-      if(results.length < 1) {
-        console.log("No user found");
-        socket.emit('login-failed');
-      } else if (details.username == results[0].name && details.password == results[0].password) {
-        console.log(results);
-        console.log("User match");
-        connectionInfo['teacherId'] = results[0].id;
+    models.User.findOne({
+      where: {
+        name: details.username
+      }, 
+      include: [{
+        model: models.Group,
+        include: [{
+          model: models.User
+        }]
+      }]
+    })
+      .then((user) => {
+        if (user) {
+          // check the password
+          if (user.password === details.password) {
+            var data = {
+              success: true,
+              user: user,
+              uid: user.id,
+              key: getKey()
+            }
 
-        var data = {
-          success: true,
-          username: results[0].name,
-          uid: results[0].id,
-          key: getKey()
+            socket.emit('login-teacher-done', data);
+          } else {
+            console.log("incorrect password");
+            socket.emit('login-failed');  
+          }
+        } else {
+          console.log("wrong username");
+          socket.emit('login-failed');
         }
-
-        socket.emit('login-teacher-done', data);
-
-        getClasses(connectionInfo, socket);
-      }
-    });
+      });
   });
 
   socket.on('check-cookies', function(cookies) {
     console.log('checking cookies');
     console.log(cookies);
-    var cookieCheck = 'SELECT * FROM critisearch_cookies WHERE cookie_key=?';
-    connection.query(cookieCheck, [cookies.key], function(error, results) {
-      if (results.length > 0) {
-        console.log(results);
-        var data = {uid: cookies.uid};
-        for (var i = 0; i < results.length; i++) {
-          if (results[i].uid == cookies.uid) {
-            data.newKey = getKey();
-            console.log('FOUND COOKIES');
-            socket.emit('cookies-login', data);
-          }
-        }
+
+    models.Cookie.findOne({
+      where: {
+        key: cookies.key,
+        uid: cookies.uid
       }
-    });
+    })
+      .then((cookieResults) => {
+        console.log(cookieResults);
+        if (cookieResults && cookieResults.length > 0) {
+          socket.emit('cookies-login', {uid: cookies.uid});
+        }
+      });
   });
 
   socket.on('update-cookies', function(cookies) {
-    var removeKey = "DELETE FROM critisearch_cookies WHERE uid=?"
-    connection.query(removeKey, [cookies.uid], function(error, results) {
-      console.log("remove");
-      console.log(error);
-    });
-
-    var updateKey = "INSERT INTO critisearch_cookies (uid, cookie_key) values (?, ?)";
-    connection.query(updateKey, [cookies.uid, cookies.key], function(error, results) {
-      console.log(error);
-      console.log(results);
-      socket.emit('cookies-updated');
-    });
+    models.Cookie.findOne({
+      where: {
+        uid: cookies.uid
+      }
+    })
+      .then((foundCookie) => {
+        if (foundCookie) {
+          foundCookie.key = cookies.key;
+          foundCookie.save()
+            .then(() => {
+              socket.emit('cookies-updated');
+            })
+        } else {
+          console.error('cookie not updated');
+        }
+      });
   });
 
   socket.on('teacher-details', function(id) {
