@@ -1,21 +1,27 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('TeacherCtrl', function ($scope, theSocket, $routeParams) {
-    console.log($routeParams);
+  .controller('TeacherCtrl', function ($scope, User, theSocket, $routeParams, $location) {
+    $scope.userService = User;
+    $scope.className = '';
+    $scope.number;
 
-    theSocket.emit('teacher');
 
-    $scope.queries = [];
-    var searchScope = $scope;
+    if (User.isAuthenticated()) {
+      ///////////// dunno yet
+    } else {
+      console.log("Not logged in");
+      $location.path('/login/teacher');
+    }
 
-    theSocket.on('query', function(data) {
-      console.log(data);
-      searchScope.queries.unshift({query:data});
-    });
+    $scope.createClass = function() {
+      console.log("CREATE A CLASS");
+      theSocket.emit('create-class', $scope.className, $scope.number);
+    }
 
-    theSocket.on('oldQueries', function(data) {
-    	searchScope.queries = searchScope.queries.concat(data);
-    })
-
+    $scope.goToClass = function(name) {
+      console.log('/class/' + name);
+      User.setGroup(name, true);
+      $location.path('/class/' + name);
+    }
 });

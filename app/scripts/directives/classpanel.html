@@ -1,0 +1,14 @@
+<div class="panel panel-default class-panel" ng-repeat="group in userService.groups">
+  <div class="panel-heading">
+    <h1 class="panel-title" title="{{group.className}}">{{group.className}}</h1>
+  </div>
+  <div class="panel-body">
+    <h5>Students:</h5>
+    <ul class="student-list">
+      <li class="participant-name" ng-repeat="name in group.users">
+        {{name}}
+      </li>
+    </ul>
+    <button type="button" class="btn btn-lg btn-primary class-button" ng-click="goToClass(group.groupId)">Go To Class</button>
+  </div>
+</div>

@@ -1,7 +1,12 @@
 <div class="row">
-  <div class="col-md-1"></div>
+  <div class="col-md-1 last-column">
+    <button type="button" class="btn btn-lg btn-primary critisort" data-toggle="button" ng-click="logIn()" ng-show="loggedIn == false">Log In</button>
+    <p class="student-login" ng-show="loggedIn == true">Logged in as:</p>
+    <!-- display the current username here -->
+    <h3 class="username">{{userService.username}}</h3>
+  </div>
   <div class="col-md-9">
-    <form role="form" ng-submit="searchSubmitted()">
+    <form role="form" id="search" ng-submit="searchSubmitted()">
       <label class="sr-only" for="search-query">Search Query</label>
         <input type="text" class="input-lg form-control main-search-query" id="search-query" placeholder="Search Query" ng-model="queryInProgress">
     </form>
@@ -9,6 +14,7 @@
   </div>
   <div class="col-md-1 last-column">
     <button type="button" class="btn btn-lg btn-primary critisort" data-toggle="button" ng-click="critiSort()" ng-show="results.length > 0">CritiSORT!</button>
+    <button type="button" class="btn btn-lg btn-primary critisort" data-toggle="button" ng-click="originalSort()" ng-show="!originalOrder">Original Order</button>
   </div>
   <div class="col-md-1"></div>
 </div>

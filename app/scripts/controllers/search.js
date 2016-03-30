@@ -1,12 +1,13 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('SearchCtrl', function ($scope, theSocket, $routeParams, $location) {
-    console.log($routeParams);
+  .controller('SearchCtrl', function ($scope, User, theSocket, $routeParams, $location, $anchorScroll) {
     $scope.queryInProgress = '';
     $scope.query = '';
-
+    $scope.loggedIn = User.studentLoggedIn();
     $scope.results = [];
+    $scope.userService = User;
+    $scope.originalOrder = true;
     var searchScope = $scope;
 
     $scope.searchSubmitted = function() {
@@ -14,12 +15,22 @@ angular.module('angularSocketNodeApp')
       $location.path('/search/' + $scope.query);      
     };
 
-    $scope.search = function() {
-      console.log($scope.queryInProgress, $scope.query);
-      theSocket.emit('q', $scope.query);
+    $scope.logIn = function() {
+      $location.path('/login/student');
     };
 
-    console.log("routeParams: ", $routeParams.query);
+    $scope.search = function() {
+      var details = {};
+      if (User.getUserId() != '') {
+        details.userId = User.getUserId();
+      }
+      details.group = User.getCurrentGroup();
+      console.log("currentGroup: " + User.getCurrentGroup());
+      details.query = $scope.query;
+      console.log(details);
+      theSocket.emit('q', details);
+    };
+
     if ($routeParams.hasOwnProperty('query') 
         && $routeParams.query.length > 0) {
       $scope.queryInProgress = $routeParams.query;
@@ -27,7 +38,19 @@ angular.module('angularSocketNodeApp')
       $scope.search();
     }
 
+    $scope.originalSort = function() {
+      var newResults = [];
+      for (var i in searchScope.results) {
+        newResults[searchScope.results[i].order] = searchScope.results[i];
+      }
+      searchScope.results = newResults;
+      $scope.originalOrder = true;
+    }
+
     $scope.critiSort = function() {
+      //$location.hash('search');
+      // $anchorScroll();
+      theSocket.emit('critisort', $scope.userService.uid);
       console.log("sorting");
       if ($scope.results.length > 0) {
         var comparisons = 0,
@@ -48,16 +71,23 @@ angular.module('angularSocketNodeApp')
                     $scope.results[j + 1] = swapping;
      
                     swaps++;
+                    $scope.originalOrder = false;
                 };
             };
         }
-     
         console.log("Comparisons: " + comparisons);
         console.log("Swaps: " + swaps);
       }
+
+      console.log($scope.results);
     }
 
     theSocket.on('search-results', function(data) {
+      for (var i in data) {
+        var newurl = data[i].link.substring(7);
+        newurl = newurl.substring(0, newurl.indexOf('/'));
+        data[i].newurl = newurl;
+      }
 
       searchScope.results = data;
     });
