@@ -208,23 +208,54 @@ io.sockets.on('connection', function (socket) {
   socket.on('signup', function(username, password, email) {
     console.log('Database add ' + username + ', ' + password + ', ' + email);
 
-    var usernames = 'select * from users where name=?';
+    var reason;
 
-    connection.query(usernames, [username], function(error, results) {
-      if (results.length > 0) {
-        console.log("Username already exists");
-      } else if (email != null) {
-        var newUser = 'insert into users (name, password, email) values (?, ?, ?)'
-        connection.query(newUser, [username, password, email], function(error, results) {
-          console.log(results);
 
-          connectionInfo['teacherId'] = results.insertId;
-          socket.emit('login-teacher-done', {success: true});
-        });
-      } else {
-        console.log("invalid email");
-      }
-    });
+    models.User.isUniqueName(username)
+      .then(function (isUnique) {
+        if (!isUnique) {
+          reason = 'Username already exists';
+          console.log(reason);
+          socket.emit('userNotAdded', {
+            reason: reason
+          });
+        } else {
+          models.User.create({
+            where: {
+              email: email,
+              name: username,
+              password:password,
+              role: models.ROLES.FACILITATOR
+            }
+          }).then(function(user) {
+            connectionInfo['teacherId'] = user.id;
+            socket.emit('login-teacher-done', {
+              success: true, 
+              user: {
+                name: username,
+                groups: [],
+              },
+              uid: user.id,
+              key: getKey()
+            });
+          });
+        }
+       });
+    // connection.query(usernames, [username], function(error, results) {
+    //   if (results.length > 0) {
+    //     console.log("Username already exists");
+    //   } else if (email != null) {
+    //     var newUser = 'insert into users (name, password, email) values (?, ?, ?)'
+    //     connection.query(newUser, [username, password, email], function(error, results) {
+    //       console.log(results);
+
+    //       connectionInfo['teacherId'] = results.insertId;
+    //       socket.emit('login-teacher-done', {success: true});
+    //     });
+    //   } else {
+    //     console.log("invalid email");
+    //   }
+    // });
 
     // This works but who knows why
     /*if (connection.query(usernames, [username], function(error, results) {

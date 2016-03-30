@@ -44,6 +44,19 @@ var User = sequelize.define('user', {
   password: Sequelize.STRING,
   email: Sequelize.STRING,
   role: Sequelize.ENUM(ROLES.FACILITATOR, ROLES.PARTICIPANT)
+}, {
+  classMethods: {
+    isUniqueName: function (name) {
+      return User.findOne({
+        where: {
+          name: name
+        }
+      }).then(function (user) {
+        console.log(user);
+        return user === null;
+      });
+    }
+  }
 });
 
 var Query = sequelize.define('query', {

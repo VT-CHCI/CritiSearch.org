@@ -6,7 +6,10 @@ angular.module('angularSocketNodeApp')
 
     //nothing yet
 
+    $scope.registrationErrors = [];
+
     $scope.signUp = function() {
+        $scope.registrationErrors = [];
     	console.log($scope.email);
     	console.log($scope.username);
     	console.log($scope.password);
@@ -16,12 +19,25 @@ angular.module('angularSocketNodeApp')
     	theSocket.emit('signup', $scope.username, md5Password, $scope.email);
     }
 
-    theSocket.on('userAdded', function(results) {
-    	if (results) {
+    // var signupScope = $scope;
 
-      		$location.path('/teacher');
-    	} else {
-    		console.log("database add failed");
-    	}
-  	});
+    theSocket.on('userNotAdded', function (results) {
+        // $scope.$apply(function () {
+            console.log(results.reason);
+            // console.log($scope);
+            // console.log(signupScope);
+            $scope.registrationErrors.push(results.reason);
+        // });
+    });
+
+    // this will no longer happen because we decided to go ahead and transition 
+    // to the logged in teacher when they are created successfully
+   //  theSocket.on('userAdded', function(results) {
+   //  	if (results) {
+
+   //    		$location.path('/teacher');
+   //  	} else {
+   //  		console.log("database add failed");
+   //  	}
+  	// });
 });
