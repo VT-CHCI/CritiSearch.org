@@ -44,14 +44,16 @@ var Event = sequelize.define('event', {
   type: Sequelize.ENUM(EVENT_TYPE.VOTE,EVENT_TYPE.SORT,EVENT_TYPE.LOGOUT,EVENT_TYPE.LOGIN,EVENT_TYPE.FOLLOW)
 });
 
-Event.belongsTo(Client);
-Client.hasMany(Event);
+
 
 var Client = sequelize.define('client', {
   socketid: Sequelize.STRING,
   connected: Sequelize.DATE,
   disconnected: Sequelize.DATE,
 });
+
+Event.belongsTo(Client);
+Client.hasMany(Event);
 
 var Cookie = sequelize.define('cookie', {
   key: Sequelize.STRING,
@@ -112,7 +114,6 @@ exports.Result = Result;
 exports.Client = Client;
 exports.Cookie = Cookie;
 exports.User = User;
-// <Sarang> need to create a class for this
 exports.Query = Query;
 exports.Event = Event;
 exports.Group = Group;
