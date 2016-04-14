@@ -15,13 +15,37 @@ if (process.env.CS_DROP === 'true') {
   DROPTABLES = true;
 }
 
+let RELEVANCE = {
+  VOTE_UP: 'up',
+  VOTE_DOWN: 'down',
+  VOTE_NONE:'none'
+};
 
 var Result = sequelize.define('result', {
   link: Sequelize.STRING(2048), 
   description: Sequelize.TEXT, 
   result_order: Sequelize.FLOAT(5,2), 
   title: Sequelize.STRING,
+  result_relevance: Sequelize.ENUM(RELEVANCE.VOTE_UP,RELEVANCE.VOTE_DOWN,RELEVANCE.VOTE_NONE)
 });
+
+// event types for teacher such as create class or view incoming queries to be added later
+
+let EVENT_TYPE = {
+  VOTE: 'vote',
+  SORT: 'sort',
+  LOGOUT: 'logout',
+  LOGIN:'login',
+  FOLLOW:'follow'
+};
+
+var Event = sequelize.define('event', { 
+  description: Sequelize.TEXT, 
+  type: Sequelize.ENUM(EVENT_TYPE.VOTE,EVENT_TYPE.SORT,EVENT_TYPE.LOGOUT,EVENT_TYPE.LOGIN,EVENT_TYPE.FOLLOW)
+});
+
+Event.belongsTo(Client);
+Client.hasMany(Event);
 
 var Client = sequelize.define('client', {
   socketid: Sequelize.STRING,
@@ -64,6 +88,7 @@ var Query = sequelize.define('query', {
 });
 
 Result.belongsTo(Query);
+Query.hasMany(Result);
 
 var Group = sequelize.define('group', {
   name: Sequelize.STRING,
@@ -87,10 +112,17 @@ exports.Result = Result;
 exports.Client = Client;
 exports.Cookie = Cookie;
 exports.User = User;
+// <Sarang> need to create a class for this
 exports.Query = Query;
+exports.Event = Event;
 exports.Group = Group;
 exports.Membership = Membership;
 
+
+
+
+
+// <Sarang> what exactly is happening here? When is this action initiated?
 exports.start = function () {
   return sequelize.sync({force: DROPTABLES})  // Use {force:true} only for updating the above models,
                                               // it drops all current data

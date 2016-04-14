@@ -510,24 +510,50 @@ io.sockets.on('connection', function (socket) {
   /**
    * When the user searches
    */
-  socket.on('q', function(details) {
+
+   // <Sarang> details is unclear
+    socket.on('q', function(details) {
     console.log("Group: " + details.group.id);
     socket.broadcast.to(details.group.id).emit('query', details.query);
 
-    var newQuery = 'insert into critisearch_queries (query, searcher, time) values (?, ?, ?)';
-    var searcher;
-    if (details.hasOwnProperty('userId')) {
-      searcher = details.userId;
-    } else {
-      searcher = connectionInfo.dbId;
-    }
+    // <Sarang> need to sequelize . do we need to insert into a new table critisearch queries and therefore define it in models.js?
+    var createdQuery = models.Query.create({
+      text: details.query,
+    });
+
+    // TODO: if the user is anonymous do not log the membership information
+    models.Membership.findOne({
+      where: {
+        userId:details.userId,
+        groupId:details.group.id
+      }
+    }).then(function(foundMembership){
+      createdQuery.then(function (query) {
+        query.authorGroupId = foundMembership.id;
+        query.save();
+      });
+    }).catch(function (err) {
+      console.log(err);
+    });
+
+    // var newQuery = 'insert into critisearch_queries (query, searcher, time) values (?, ?, ?)';
+    // var searcher;
+    
+    // <Sarang> if user is logged in before searching
+    // if (details.hasOwnProperty('userId')) {
+    //   searcher = details.userId;
+    // } else {
+    //   searcher = connectionInfo.dbId;
+    // }
     console.log('SEARCHING ' + details.query, searcher, new Date());
+    
+    // <Sarang> 
     connection.query(newQuery, [details.query, searcher, new Date()], function(error, results){
       if (results.hasOwnProperty('insertId')) {
         var id = results.insertId;
         connectionInfo['currentQuery'] = id;
 
-        //Log the query event to the database
+        // <Sarang> need to create an object in models for this query
         var newEvent = 'insert into critisearch_events (type, time, client, query) values (?, ?, ?, ?)';
         connection.query(newEvent, [1, new Date(), searcher, connectionInfo.currentQuery], function(error, results) {
         });

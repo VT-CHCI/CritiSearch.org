@@ -1,0 +1,19 @@
+// Student login
+
+
+//
+when the student searches
+what is details?
+
+Database connectivity clairty
+1> Where are the names defined?
+2> Looking into the tables
+3> Basic tables info
+
+
+Tasks for the day
+//Rewrite the user search methods
+// sillynames names 
+
+
+ 
