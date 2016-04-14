@@ -23,8 +23,8 @@ angular.module('angularSocketNodeApp')
       var details = {};
       if (User.getUserId() != '') {
         details.userId = User.getUserId();
-         details.group = User.getCurrentGroup();
-         console.log("currentGroup: " + User.getCurrentGroup());
+        details.group = User.getCurrentGroup();
+        console.log("currentGroup: " + User.getCurrentGroup());
       }
      
       
