@@ -447,7 +447,7 @@ io.sockets.on('connection', function (socket) {
                     user.groupId = results[0].groupId;
 
                     socket.join(user.groupId);
-                    console.log(results);
+                  //   console.log(user);
                     socket.emit('login-student-done', user);
                   }
                   else { //this is for if the user DNE
@@ -555,7 +555,7 @@ io.sockets.on('connection', function (socket) {
 
    // <Sarang> details is unclear
     socket.on('q', function(details) {
-    console.log("Group: " + details.group.id);
+    console.log("Group: " + details);
     socket.broadcast.to(details.group.id).emit('query', details.query);
 
     // <Sarang> need to sequelize . do we need to insert into a new table critisearch queries and therefore define it in models.js?
