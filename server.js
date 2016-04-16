@@ -414,44 +414,86 @@ io.sockets.on('connection', function (socket) {
     // getNames(number, id, connectionInfo.teacherId)
   });
 
+  
+  // Login student code
   socket.on('login-student', function(details) {
     console.log('Searching for ' + details.sillyname);
 
-    var newUser = 'select * from users where name=?';
-    connection.query(newUser, [details.sillyname], function(error, results) {
-      // should be checking the error
-
-      // results probably has length 0
-      // console.log(results);
-      // console.log(results.length);
-      
-      if (results.length > 0) {
-        results[0].success = false;
-        console.log("Looking for " + results[0].name);
-        if (details.sillyname == results[0].name) {
-          results[0].success = true;
-          console.log("User match");
-        }
+     var newUser = models.User.findAll({
+            where: {
+            name:details.sillyname 
+            }
+        }).then (function(results){
+          if (results.length > 0) {
+              results[0].success = false;
+              console.log("Looking for " + results[0].name);
+          if (details.sillyname == results[0].name) {
+              results[0].success = true;
+              console.log("User match");
+          }
 
         var user = results[0];
+        
+        //var findGroup = 'select * from critisearch_role_memberships where uid=?';
+        // connection.query(findGroup, [user.id], function(error, results) {
 
-        var findGroup = 'select * from critisearch_role_memberships where uid=?';
-        connection.query(findGroup, [user.id], function(error, results) {
-          if (error == null) {
-            user.groupId = results[0].gid;
-            socket.join(user.groupId);
-            socket.emit('login-student-done', user);
-          }
-        })
-      } else { //this is for if the user DNE
-        socket.emit('login-student-done', {
-          success: false,
-          message: 'incorrect username.'
-        });
-        // TODO: send back a message that the user does not exist
-      }
+        var findGroup = models.Membership.findAll({
+              where: {
+                userId:[user.id]
+              }
+            }).then (function(results){
+
+                  if (results.length > 0) {
+                    user.groupId = results[0].groupId;
+
+                    socket.join(user.groupId);
+                    console.log(results);
+                    socket.emit('login-student-done', user);
+                  }
+                  else { //this is for if the user DNE
+                    socket.emit('login-student-done', {
+                    success: false,
+                    message: 'incorrect username.'
+                });             
+              }
+          });
+        }
+      }).catch(function (err) {
+      console.log(err);
     });
   });
+
+
+      // <Sarang m1> 
+     
+      
+  //     if (results.length > 0) {
+  //       results[0].success = false;
+  //       console.log("Looking for " + results[0].name);
+  //       if (details.sillyname == results[0].name) {
+  //         results[0].success = true;
+  //         console.log("User match");
+  //       }
+
+  //       var user = results[0];
+
+  //       var findGroup = 'select * from critisearch_role_memberships where uid=?';
+  //       connection.query(findGroup, [user.id], function(error, results) {
+  //         if (error == null) {
+  //           user.groupId = results[0].gid;
+  //           socket.join(user.groupId);
+  //           socket.emit('login-student-done', user);
+  //         }
+  //       })
+  //     } else { //this is for if the user DNE
+  //       socket.emit('login-student-done', {
+  //         success: false,
+  //         message: 'incorrect username.'
+  //       });
+  //       // TODO: send back a message that the user does not exist
+  //     }
+  //   });
+  // });
 
   socket.on('teacher', function(groupId) {
     console.log('Teacher Joined')
