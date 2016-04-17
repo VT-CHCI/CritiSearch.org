@@ -21,15 +21,19 @@ angular.module('angularSocketNodeApp')
 
     $scope.search = function() {
       var details = {};
+      console.log(User.getUserId());
+      
+      // <to confirm> even after a user is logged on control does not pass here
       if (User.getUserId() != '') {
+        console.log('hello user2');
         details.userId = User.getUserId();
+        console.log(details.userId);
         details.group = User.getCurrentGroup();
         console.log("currentGroup: " + User.getCurrentGroup());
       }
      
       
       details.query = $scope.query;
-      console.log(details);
       theSocket.emit('q', details);
     };
 

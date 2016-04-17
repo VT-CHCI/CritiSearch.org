@@ -11,18 +11,21 @@ angular.module('angularSocketNodeApp')
 
   $scope.errorMessage = '';
 
+  // <to confirm> in order to check if a login is successful or not the user.id in the results.id should be defined
   theSocket.on('login-student-done', function(results) {
-    if (results.success) {
-
-      console.log("loginstudent.js login success" )
+    console.log(results.id)
+    if (results.id === undefined) {
+      console.log("login failed");
+      $scope.errorMessage = results.message;
+    
+    } else {
+        console.log("loginstudent.js login success" )
 
       //make current session have a teacher???
       //something like that
 
       $location.path('/search');
-    } else {
-      console.log("login failed" + results);
-      $scope.errorMessage = results.message;
+     
     }
   });
 });

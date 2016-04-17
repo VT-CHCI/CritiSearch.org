@@ -453,7 +453,7 @@ io.sockets.on('connection', function(socket) {
             user.groupId = results[0].groupId;
 
             socket.join(user.groupId);
-            console.log(results);
+            //   console.log(user);
             socket.emit('login-student-done', user);
           } else { //this is for if the user DNE
             socket.emit('login-student-done', {
@@ -552,6 +552,7 @@ io.sockets.on('connection', function(socket) {
    * When the user searches
    */
 
+
   // <Sarang> details is unclear
   socket.on('q', function(details) {
 
@@ -562,6 +563,8 @@ io.sockets.on('connection', function(socket) {
 
     // TODO: if the user is anonymous do not log the membership information
     if (details.hasOwnProperty('group') && details.group.hasOwnProperty('id')) {
+      console.log("Group: " + details);
+      socket.broadcast.to(details.group.id).emit('query', details.query);
       console.log("Group: " + details.group.id);
       socket.broadcast.to(details.group.id).emit('query', details.query);
       models.Membership.findOne({
