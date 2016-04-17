@@ -8,7 +8,7 @@ var sequelize = new Sequelize(
   { logging: false }
 );
 
-var DROPTABLES = false;
+var DROPTABLES = true;
 
 
 if (process.env.CS_DROP === 'true') {
@@ -36,12 +36,13 @@ let EVENT_TYPE = {
   SORT: 'sort',
   LOGOUT: 'logout',
   LOGIN:'login',
-  FOLLOW:'follow'
+  FOLLOW: 'follow',
+  SEARCH: 'search'
 };
 
 var Event = sequelize.define('event', { 
   description: Sequelize.TEXT, 
-  type: Sequelize.ENUM(EVENT_TYPE.VOTE,EVENT_TYPE.SORT,EVENT_TYPE.LOGOUT,EVENT_TYPE.LOGIN,EVENT_TYPE.FOLLOW)
+  type: Sequelize.ENUM(EVENT_TYPE.VOTE, EVENT_TYPE.SORT, EVENT_TYPE.LOGOUT, EVENT_TYPE.LOGIN, EVENT_TYPE.FOLLOW, EVENT_TYPE.SEARCH)
 });
 
 
@@ -118,6 +119,7 @@ exports.Query = Query;
 exports.Event = Event;
 exports.Group = Group;
 exports.Membership = Membership;
+exports.EVENT_TYPE = EVENT_TYPE;
 
 
 
@@ -125,6 +127,7 @@ exports.Membership = Membership;
 
 // <Sarang> what exactly is happening here? When is this action initiated?
 exports.start = function () {
+  if (DROPTABLES) {console.log('dropping existing tables');}
   return sequelize.sync({force: DROPTABLES})  // Use {force:true} only for updating the above models,
                                               // it drops all current data
     .then( function (results) {
