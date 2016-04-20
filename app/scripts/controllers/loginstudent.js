@@ -5,7 +5,7 @@ angular.module('angularSocketNodeApp')
     console.log($routeParams);
 
   $scope.logIn = function() {
-    console.log($scope.sillyname);
+    console.log('Hello ' + $scope.sillyname);
     User.logInStudent($scope.sillyname);
   };
 

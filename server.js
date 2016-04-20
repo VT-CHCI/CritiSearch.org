@@ -21,7 +21,7 @@ var models = require('./models');
 var _ = require('lodash');
 
 // Limit the results per page for testing
-google.resultsPerPage = 10;
+google.resultsPerPage = 50;
 
 /**
  * ~~ Initialization ~~
@@ -50,6 +50,7 @@ models.start()
 
 // filters out google's enhanced results
 function getProcessedResults(results) {
+  console.log(results);
   var resultsToSend = [];
   for (var i = 0; i < results.length; i++) {
     if (results[i].hasOwnProperty('link') && results[i].title.length > 0) {
@@ -516,21 +517,32 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('promoted', function(result) {
-    var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
-    if (result.uid == '') {
-      connection.query(promotedQuery, [3, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {});
-    } else {
-      connection.query(promotedQuery, [3, new Date(), result.uid, connectionInfo.currentQuery, result.id], function(error, results) {});
-    }
+
+
+    //var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) 
+    //values (?, ?, ?, ?, ?)';
+    // if (result.uid == '') {
+        console.log(result);
+        var event_description = 'user voted up';
+        models.Event.create({
+              description: JSON.stringify(event_description),
+              type:models.EVENT_TYPE.VOTE_UP
+          });
+
+
+      //connection.query(promotedQuery, [3, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {});
+    // } else {
+      //connection.query(promotedQuery, [3, new Date(), result.uid, connectionInfo.currentQuery, result.id], function(error, results) {});
+    
   });
 
   socket.on('demoted', function(result) {
-    var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
-    if (result.uid == '') {
-      connection.query(promotedQuery, [4, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {});
-    } else {
-      connection.query(promotedQuery, [4, new Date(), result.uid, connectionInfo.currentQuery, result.id], function(error, results) {});
-    }
+    var event_description = 'user voted down';
+        models.Event.create({
+              description: JSON.stringify(event_description),
+              type:models.EVENT_TYPE.VOTE_DOWN
+              
+          });
   });
 
   socket.on('follow', function(result) {
@@ -590,10 +602,17 @@ io.sockets.on('connection', function(socket) {
 
 
     google(details.query, function(err, response) {
-      // console.log('search results for', details.query, response.links);
+       console.log('search results for', details.query, response.links);
       var processedResults = getProcessedResults(response.links);
+      var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result,index){
+        return models.Result.create({ 
+        });
+      });
+      Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
+        .then(function(sequelizeResults){
+          socket.emit('search-results', processedResults);
+        });
       // console.log(processedResults);
-      socket.emit('search-results', processedResults);
 
     });
   });

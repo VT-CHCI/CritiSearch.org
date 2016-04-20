@@ -32,17 +32,20 @@ var Result = sequelize.define('result', {
 // event types for teacher such as create class or view incoming queries to be added later
 
 let EVENT_TYPE = {
-  VOTE: 'vote',
-  SORT: 'sort',
+  VOTE_UP: 'vote_up',
+  VOTE_DOWN: 'vote_down',
+  CRITISORT: 'critisort',
+  ORIGINALSORT:'originalsort',
   LOGOUT: 'logout',
   LOGIN:'login',
   FOLLOW: 'follow',
   SEARCH: 'search'
 };
 
+// how do we log events such as EVENT_TYPE.SEARCH and EVENT_TYPE.FOLLOW
 var Event = sequelize.define('event', { 
   description: Sequelize.TEXT, 
-  type: Sequelize.ENUM(EVENT_TYPE.VOTE, EVENT_TYPE.SORT, EVENT_TYPE.LOGOUT, EVENT_TYPE.LOGIN, EVENT_TYPE.FOLLOW, EVENT_TYPE.SEARCH)
+  type: Sequelize.ENUM(EVENT_TYPE.VOTE_UP,EVENT_TYPE.VOTE_DOWN, EVENT_TYPE.CRITISORT,EVENT_TYPE.ORIGINALSORT, EVENT_TYPE.LOGOUT, EVENT_TYPE.LOGIN, EVENT_TYPE.FOLLOW, EVENT_TYPE.SEARCH)
 });
 
 
@@ -53,8 +56,23 @@ var Client = sequelize.define('client', {
   disconnected: Sequelize.DATE,
 });
 
+var Query = sequelize.define('query', {
+  text: Sequelize.STRING,
+});
+
+// each event is trigerred by a client
 Event.belongsTo(Client);
 Client.hasMany(Event);
+
+
+
+// Certain events such as Vote up/down  impact the result set 
+Event.belongsTo(Result);
+Result.hasMany(Event);
+
+// Events such as sorting queries
+Event.belongsTo(Query);
+Query.hasMany(Event);
 
 var Cookie = sequelize.define('cookie', {
   key: Sequelize.STRING,
@@ -86,9 +104,10 @@ var User = sequelize.define('user', {
   }
 });
 
-var Query = sequelize.define('query', {
-  text: Sequelize.STRING,
-});
+
+
+Client.belongsTo(User);
+User.hasMany(Client);
 
 Result.belongsTo(Query);
 Query.hasMany(Result);

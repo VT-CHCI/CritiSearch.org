@@ -15,7 +15,7 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
       };
       scope.promote = function(result) {
         console.log("Promote:");
-        console.log({});
+        console.log(result);
         theSocket.emit('promoted', {id: result.id, uid: scope.userService.uid});
 
         if (result.status !== 1) {
