@@ -43,6 +43,10 @@ angular.module('angularSocketNodeApp')
     userService.uid = id;
   }
 
+   this.setAuthenticated = function(value) {
+    userService.authenticated = value;
+  }
+
   this.getUserId = function() {
     return userService.uid;
   }
@@ -63,10 +67,12 @@ angular.module('angularSocketNodeApp')
   };
 
   this.studentLoggedIn = function () {
+
     return (userService.studentAuthenticated || userService.authenticated);
   };
 
   this.getUserName = function() {
+    console.log('inside get username');
     return userService.username;
   };
 
@@ -75,6 +81,7 @@ angular.module('angularSocketNodeApp')
   };
 
   this.logInStudent = function(name) {
+    console.log('inside login student');
     theSocket.emit('login-student', {sillyname: name});
   };
 
@@ -123,6 +130,7 @@ angular.module('angularSocketNodeApp')
 
   theSocket.on('login-student-done', function(data){
     if (data.success) {
+
       userService.username = data.name;
       userService.uid = data.id;
       userService.studentAuthenticated = true;

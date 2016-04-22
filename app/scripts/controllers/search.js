@@ -21,18 +21,20 @@ angular.module('angularSocketNodeApp')
 
     $scope.search = function() {
       var details = {};
-      console.log(User.getUserId());
+      console.log("getting user id::" + User.getUserId());
       
       // <to confirm> even after a user is logged on control does not pass here
       if (User.getUserId() != '') {
-        console.log('hello user2');
+        
         details.userId = User.getUserId();
-        console.log(details.userId);
+        
         details.group = User.getCurrentGroup();
-        console.log("currentGroup: " + User.getCurrentGroup());
+        
+  
       }
-     
-      
+      console.log('User information for sending:' + details.userId);
+      var str = JSON.stringify(User.getCurrentGroup());
+      console.log("Group information for sending :: currentGroup: " + str);
       details.query = $scope.query;
       theSocket.emit('q', details);
     };
@@ -93,6 +95,7 @@ angular.module('angularSocketNodeApp')
         var newurl = data[i].link.substring(7);
         newurl = newurl.substring(0, newurl.indexOf('/'));
         data[i].newurl = newurl;
+  
       }
 
       searchScope.results = data;

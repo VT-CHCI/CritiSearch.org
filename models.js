@@ -139,6 +139,7 @@ exports.Event = Event;
 exports.Group = Group;
 exports.Membership = Membership;
 exports.EVENT_TYPE = EVENT_TYPE;
+exports.RELEVANCE = RELEVANCE;
 
 
 

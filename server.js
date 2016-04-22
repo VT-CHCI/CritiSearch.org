@@ -21,7 +21,7 @@ var models = require('./models');
 var _ = require('lodash');
 
 // Limit the results per page for testing
-google.resultsPerPage = 50;
+google.resultsPerPage = 10;
 
 /**
  * ~~ Initialization ~~
@@ -384,6 +384,8 @@ io.sockets.on('connection', function(socket) {
   socket.on('create-class', function(name, number) {
     var newClassQuery = 'insert into critisearch_groups(name, owner) values (?, ?)';
     console.log(connectionInfo.teacherId);
+    
+
     connection.query(newClassQuery, [name, connectionInfo.teacherId], function(error, results) {
       console.log("create class");
       console.log(results);
@@ -507,7 +509,7 @@ io.sockets.on('connection', function(socket) {
     var oldResults = 'SELECT q.query FROM critisearch_queries q ' +
       'join critisearch_role_memberships m on m.uid=q.searcher ' +
       'where m.gid=? and time > date_sub(now(),INTERVAL 90 MINUTE) order by time desc;';
-    connection.query(oldResults, [groupId], function(error, results) {
+       connection.query(oldResults, [groupId], function(error, results) {
       socket.emit('oldQueries', results);
     });
   });
@@ -546,12 +548,19 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('follow', function(result) {
-    var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
-    if (result.uid == '') {
-      connection.query(promotedQuery, [2, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {});
-    } else {
-      connection.query(promotedQuery, [2, new Date(), result.uid, connectionInfo.currentQuery, result.id], function(error, results) {});
-    }
+    //<to do> with the event add for which result the user followed result.id has the query.id 
+    console.log(result.id);
+    var event_description = 'user followed the link';
+        models.Event.create({
+              description: JSON.stringify(event_description),
+              type:models.EVENT_TYPE.FOLLOW
+          });
+    // var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
+    // if (result.uid == '') {
+    //   connection.query(promotedQuery, [2, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {});
+    // } else {
+    //   connection.query(promotedQuery, [2, new Date(), result.uid, connectionInfo.currentQuery, result.id], function(error, results) {});
+    // }
   });
 
   socket.on('log-out-class', function(classId) {
@@ -567,62 +576,78 @@ io.sockets.on('connection', function(socket) {
 
   // <Sarang> details is unclear
   socket.on('q', function(details) {
-
-    // <Sarang> need to sequelize . do we need to insert into a new table critisearch queries and therefore define it in models.js?
-    var createdQuery = models.Query.create({
-      text: details.query,
-    });
-
-    // TODO: if the user is anonymous do not log the membership information
-    if (details.hasOwnProperty('group') && details.group.hasOwnProperty('id')) {
-      console.log("Group: " + details);
-      socket.broadcast.to(details.group.id).emit('query', details.query);
-      console.log("Group: " + details.group.id);
-      socket.broadcast.to(details.group.id).emit('query', details.query);
-      models.Membership.findOne({
-        where: {
-          userId: details.userId,
-          groupId: details.group.id
-        }
-      }).then(function(foundMembership) {
-        createdQuery.then(function(query) {
-          query.authorGroupId = foundMembership.id;
-          query.save();
-        });
-      }).catch(function(err) {
-        console.log(err);
-      });
-    }
-
     // <Sarang> 
     models.Event.create({
       description: JSON.stringify(details),
       type: models.EVENT_TYPE.SEARCH
     });
 
+    // <Sarang> need to sequelize . do we need to insert into a new table critisearch queries and therefore define it in models.js?
+    var createdQuery = models.Query.create({
+      text: details.query,
+    }).then(function(query) {
 
-    google(details.query, function(err, response) {
-       console.log('search results for', details.query, response.links);
-      var processedResults = getProcessedResults(response.links);
-      var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result,index){
-        return models.Result.create({ 
+      if (details.hasOwnProperty('group') && details.group.hasOwnProperty('id')) {
+        console.log("Group: " + details);
+        socket.broadcast.to(details.group.id).emit('query', details.query);
+        console.log("Group: " + details.group.id);
+        socket.broadcast.to(details.group.id).emit('query', details.query);
+        models.Membership.findOne({
+          where: {
+            userId: details.userId,
+            groupId: details.group.id
+          }
+        }).then(function (foundMembership) {
+          query.authorGroupId = foundMembership.id;
+          query.save();
         });
+      }
+        
+      google(details.query, function(err, response) {
+         console.log('search results for', details.query, response.links);
+        var processedResults = getProcessedResults(response.links);
+        //console.log(processedResults);
+        var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
+          return models.Result.create({ 
+            link: result.link, 
+            description: result.description, 
+            result_order: idx , 
+            title: result.title,
+            result_relevance: models.RELEVANCE.VOTE_NONE,
+            queryId: query.id
+          });
+        });
+        Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
+          .then(function(sequelizeResults){
+            console.log("Results added to database successfully");
+            socket.emit('search-results', sequelizeResults);
+          });
+        // console.log(processedResults);
+
       });
-      Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
-        .then(function(sequelizeResults){
-          socket.emit('search-results', processedResults);
-        });
-      // console.log(processedResults);
-
+    }).catch(function(err) {
+      console.log(err);
     });
+
+    // TODO: if the user is anonymous do not log the membership information
+
+
+
   });
 
   socket.on('critisort', function(uid) {
-    var newEvent = 'insert into critisearch_events (type, time, client, query) values (?, ?, ?, ?)';
-    if (uid == '') {
-      connection.query(newEvent, [5, new Date(), connectionInfo.dbId, connectionInfo.currentQuery], function(error, results) {});
-    } else {
-      connection.query(newEvent, [5, new Date(), uid, connectionInfo.currentQuery], function(error, results) {});
-    }
+      
+      var details = 'user sorted the list';
+      models.Event.create({
+      description: JSON.stringify(details),
+      type: models.EVENT_TYPE.CRITISORT
+    });
+
+    // var newEvent = 'insert into critisearch_events (type, time, client, query) values (?, ?, ?, ?)';
+    // if (uid == '') {
+    //   connection.query(newEvent, [5, new Date(), connectionInfo.dbId, connectionInfo.currentQuery], function(error, results) {});
+    // } else {
+    //   connection.query(newEvent, [5, new Date(), uid, connectionInfo.currentQuery], function(error, results) {});
+    // }
   });
 });
