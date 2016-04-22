@@ -50,7 +50,7 @@ models.start()
 
 // filters out google's enhanced results
 function getProcessedResults(results) {
-  console.log(results);
+  console.log('Logging results for getProcessedResults::' + results);
   var resultsToSend = [];
   for (var i = 0; i < results.length; i++) {
     if (results[i].hasOwnProperty('link') && results[i].title.length > 0) {
@@ -549,7 +549,18 @@ io.sockets.on('connection', function(socket) {
 
   socket.on('follow', function(result) {
     //<to do> with the event add for which result the user followed result.id has the query.id 
-    console.log(result.id);
+    console.log('Data for follow:'+ result.id + ' :: ' + result.uid);
+    
+  
+
+    models.Result.findOne({
+          where: {
+            id: result.id,
+          }
+        }).then(function (foundResult) {
+          //<to do>
+        });
+
     var event_description = 'user followed the link';
         models.Event.create({
               description: JSON.stringify(event_description),

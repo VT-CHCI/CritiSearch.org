@@ -9,8 +9,8 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
     },
     link: function(scope, element, attrs) {
       scope.userService = User;
-      var str = JSON.stringify(User);
-      console.log('Hey ' + str);
+
+      console.log('Hey ' + User.name);
       
       scope.showButtons = function() {
         element.find(".like_dislike").toggle();
@@ -38,7 +38,7 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
         }
       };
       scope.follow = function(result) {
-        console.log(scope.userService.uid);
+        console.log('logging user id' + scope.userService.uid);
         theSocket.emit('follow', {id: result.id, uid: scope.userService.uid});
       };
     }

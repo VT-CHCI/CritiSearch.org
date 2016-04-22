@@ -129,8 +129,9 @@ angular.module('angularSocketNodeApp')
   });
 
   theSocket.on('login-student-done', function(data){
-    if (data.success) {
-
+    console.log('success::' + data.name);
+    if (data.id) {
+      console.log('inside login-student-done:: setting student data')
       userService.username = data.name;
       userService.uid = data.id;
       userService.studentAuthenticated = true;

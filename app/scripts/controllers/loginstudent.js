@@ -7,8 +7,7 @@ angular.module('angularSocketNodeApp')
   $scope.logIn = function() {
     console.log('Hello ' + $scope.sillyname);
     User.logInStudent($scope.sillyname);
-    var printname = User.getUserName();
-    console.log('username is :'  + printname);
+    console.log('username is :'  +  User.getUserName());
   };
 
   $scope.errorMessage = '';
