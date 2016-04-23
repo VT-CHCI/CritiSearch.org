@@ -169,10 +169,8 @@ io.sockets.on('connection', function(socket) {
   var connectionInfo = {};
 
   models.Client.create({
-      where: {
-        socketid: socket.id,
-        connected: connectedAt
-      }
+      socketid: socket.id,
+      connected: connectedAt
     })
     .then(function(newClient) {
       console.log('newclient created with id', newClient.id);
@@ -236,6 +234,14 @@ io.sockets.on('connection', function(socket) {
             }
           }).then(function(user) {
             connectionInfo['teacherId'] = user.id;
+            models.Client.findOne({
+              where: {
+                socketid: socket.id
+              }
+            }).then(function (client) {
+              client.userId = user.id;
+              client.save();
+            })
             socket.emit('login-teacher-done', {
               success: true,
               user: {
@@ -307,7 +313,14 @@ io.sockets.on('connection', function(socket) {
               uid: user.id,
               key: getKey()
             }
-
+            models.Client.findOne({
+              where: {
+                socketid: socket.id
+              }
+            }).then(function (client) {
+              client.userId = user.id;
+              client.save();
+            });
             socket.emit('login-teacher-done', data);
           } else {
             console.log("incorrect password");
@@ -458,6 +471,14 @@ io.sockets.on('connection', function(socket) {
             socket.join(user.groupId);
             //   console.log(user);
             socket.emit('login-student-done', user);
+            models.Client.findOne({
+              where: {
+                socketid: socket.id
+              }
+            }).then(function (client) {
+              client.userId = user.id;
+              client.save();
+            });
           } else { //this is for if the user DNE
             socket.emit('login-student-done', {
               success: false,
@@ -548,24 +569,26 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('follow', function(result) {
-    //<to do> with the event add for which result the user followed result.id has the query.id 
-    console.log('Data for follow:'+ result.id + ' :: ' + result.uid);
-    
-  
+       
+    models.Result.findById(result.id)
+        .then(function (foundResult) {
+          console.log(foundResult.queryId);
+          models.Client.findOne({
+            where: {
+              socketid: socket.id
+            }
+          }).then(function (client) {
+            models.Event.create({
+              description: JSON.stringify('client with id::' + client.id + 'followed the link for ' + foundResult.title),
+              type:models.EVENT_TYPE.FOLLOW,
+              queryId: foundResult.queryId,
+              clientId: client.id,
+              resultId: foundResult.id
+            });
+          });
 
-    models.Result.findOne({
-          where: {
-            id: result.id,
-          }
-        }).then(function (foundResult) {
-          //<to do>
         });
 
-    var event_description = 'user followed the link';
-        models.Event.create({
-              description: JSON.stringify(event_description),
-              type:models.EVENT_TYPE.FOLLOW
-          });
     // var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
     // if (result.uid == '') {
     //   connection.query(promotedQuery, [2, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {});
@@ -617,7 +640,7 @@ io.sockets.on('connection', function(socket) {
       google(details.query, function(err, response) {
          console.log('search results for', details.query, response.links);
         var processedResults = getProcessedResults(response.links);
-        //console.log(processedResults);
+      
         var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
           return models.Result.create({ 
             link: result.link, 
@@ -629,11 +652,10 @@ io.sockets.on('connection', function(socket) {
           });
         });
         Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
-          .then(function(sequelizeResults){
-            console.log("Results added to database successfully");
+          .then(function(sequelizeResults){    
             socket.emit('search-results', sequelizeResults);
           });
-        // console.log(processedResults);
+ 
 
       });
     }).catch(function(err) {

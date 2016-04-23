@@ -21,7 +21,6 @@ angular.module('angularSocketNodeApp')
     
     } else {
         User.setAuthenticated(true);
-        console.log("spotted deer moon love");
         console.log("loginstudent.js login success" )
 
       //make current session have a teacher???
