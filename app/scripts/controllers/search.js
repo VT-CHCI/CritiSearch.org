@@ -23,9 +23,10 @@ angular.module('angularSocketNodeApp')
       var details = {};
       console.log("getting user id::" + User.getUserId());
       
-      // <to confirm> even after a user is logged on control does not pass here
+      
       if (User.getUserId() != '') {
         
+        console.log('control goes inside if')
         details.userId = User.getUserId();
         
         details.group = User.getCurrentGroup();

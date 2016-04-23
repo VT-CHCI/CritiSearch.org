@@ -539,62 +539,68 @@ io.sockets.on('connection', function(socket) {
     console.log(msg.data);
   });
 
+
+
+  // When a user promotes a query an event is logged in the event table with the query details, client details and the query result which was voted up 
   socket.on('promoted', function(result) {
-
-
-    //var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) 
-    //values (?, ?, ?, ?, ?)';
-    // if (result.uid == '') {
-        console.log(result);
-        var event_description = 'user voted up';
-        models.Event.create({
-              description: JSON.stringify(event_description),
-              type:models.EVENT_TYPE.VOTE_UP
-          });
-
-
-      //connection.query(promotedQuery, [3, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {});
-    // } else {
-      //connection.query(promotedQuery, [3, new Date(), result.uid, connectionInfo.currentQuery, result.id], function(error, results) {});
-    
-  });
-
-  socket.on('demoted', function(result) {
-    var event_description = 'user voted down';
-        models.Event.create({
-              description: JSON.stringify(event_description),
-              type:models.EVENT_TYPE.VOTE_DOWN
-              
-          });
-  });
-
-  socket.on('follow', function(result) {
-       
     models.Result.findById(result.id)
         .then(function (foundResult) {
-          console.log(foundResult.queryId);
           models.Client.findOne({
             where: {
               socketid: socket.id
             }
           }).then(function (client) {
             models.Event.create({
-              description: JSON.stringify('client with id::' + client.id + 'followed the link for ' + foundResult.title),
+              description: JSON.stringify('client with id :: ' + client.id + ' voted down the result :: ' + foundResult.title + ' for ' + foundResult.title),
+              type:models.EVENT_TYPE.VOTE_UP,
+              queryId: foundResult.queryId,
+              clientId: client.id,
+              resultId: foundResult.id
+            });
+          });
+        });
+    
+  });
+
+  // When a user promotes a query an event is logged in the event table with the query details, client details and the query result which was voted down
+  socket.on('demoted', function(result) {
+    
+        models.Result.findById(result.id)
+        .then(function (foundResult) {
+          models.Client.findOne({
+            where: {
+              socketid: socket.id
+            }
+          }).then(function (client) {
+            models.Event.create({
+              description: JSON.stringify('client with id :: ' + client.id + ' voted down the result :: ' + foundResult.title + ' for ' + foundResult.title),
+              type:models.EVENT_TYPE.VOTE_DOWN,
+              queryId: foundResult.queryId,
+              clientId: client.id,
+              resultId: foundResult.id
+            });
+          });
+        });
+  });
+
+  socket.on('follow', function(result) {
+       
+    models.Result.findById(result.id)
+        .then(function (foundResult) {
+          models.Client.findOne({
+            where: {
+              socketid: socket.id
+            }
+          }).then(function (client) {
+            models.Event.create({
+              description: JSON.stringify('client with id :: ' + client.id + ' followed the link for ' + foundResult.title),
               type:models.EVENT_TYPE.FOLLOW,
               queryId: foundResult.queryId,
               clientId: client.id,
               resultId: foundResult.id
             });
           });
-
         });
-
-    // var promotedQuery = 'insert into critisearch_events (type, time, client, query, result) values (?, ?, ?, ?, ?)';
-    // if (result.uid == '') {
-    //   connection.query(promotedQuery, [2, new Date(), connectionInfo.dbId, connectionInfo.currentQuery, result.id], function(error, results) {});
-    // } else {
-    //   connection.query(promotedQuery, [2, new Date(), result.uid, connectionInfo.currentQuery, result.id], function(error, results) {});
-    // }
   });
 
   socket.on('log-out-class', function(classId) {
@@ -611,10 +617,17 @@ io.sockets.on('connection', function(socket) {
   // <Sarang> details is unclear
   socket.on('q', function(details) {
     // <Sarang> 
-    models.Event.create({
-      description: JSON.stringify(details),
-      type: models.EVENT_TYPE.SEARCH
-    });
+    console.log('logging details::'+ JSON.stringify(details));
+    console.log(details.userId);
+    
+
+
+
+
+    // models.Event.create({
+    //   description: JSON.stringify(details.query),
+    //   type: models.EVENT_TYPE.SEARCH
+    // });
 
     // <Sarang> need to sequelize . do we need to insert into a new table critisearch queries and therefore define it in models.js?
     var createdQuery = models.Query.create({
@@ -636,6 +649,20 @@ io.sockets.on('connection', function(socket) {
           query.save();
         });
       }
+
+
+    models.Client.findOne({
+            where: {
+              socketid: socket.id
+            }
+          }).then(function (client) {
+            models.Event.create({
+              description: JSON.stringify('client with id :: ' + client.id + ' searched the link for ' + query.text),
+              type:models.EVENT_TYPE.SEARCH,
+              clientId: client.id,
+              queryId:query.id
+            });
+        });
         
       google(details.query, function(err, response) {
          console.log('search results for', details.query, response.links);
