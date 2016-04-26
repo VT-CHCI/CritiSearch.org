@@ -35,7 +35,7 @@ models.start()
     // serve static files from the app directory, directly, without "app/" in URL
     app.use(express.static(__dirname + '/app'));
 
-    var port = 3017;
+    var port = 80;
     http.listen(port, function() {
       console.log('listening on *:', port);
     });
