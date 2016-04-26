@@ -8,15 +8,15 @@ angular.module('angularSocketNodeApp')
 
 
     if (User.isAuthenticated()) {
-      ///////////// dunno yet
+      console.log("teacher logged in");
     } else {
       console.log("Not logged in");
       $location.path('/login/teacher');
     }
 
     $scope.createClass = function() {
-      console.log("CREATE A CLASS");
-      theSocket.emit('create-class', $scope.className, $scope.number);
+      console.log("Create a class for user::" + $scope.userService);
+      theSocket.emit('create-class', $scope.className, $scope.number,User.getUserId());
     }
 
     $scope.goToClass = function(name) {

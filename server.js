@@ -50,7 +50,6 @@ models.start()
 
 // filters out google's enhanced results
 function getProcessedResults(results) {
-  console.log('Logging results for getProcessedResults::' + results);
   var resultsToSend = [];
   for (var i = 0; i < results.length; i++) {
     if (results[i].hasOwnProperty('link') && results[i].title.length > 0) {
@@ -225,13 +224,12 @@ io.sockets.on('connection', function(socket) {
             reason: reason
           });
         } else {
-          models.User.create({
-            where: {
+          console.log('creating a new teacher as a user');
+          models.User.create({            
               email: email,
               name: username,
               password: password,
-              role: models.ROLES.FACILITATOR
-            }
+              role: models.ROLES.FACILITATOR           
           }).then(function(user) {
             connectionInfo['teacherId'] = user.id;
             models.Client.findOne({
@@ -375,8 +373,12 @@ io.sockets.on('connection', function(socket) {
   socket.on('teacher-details', function(id) {
     console.log(id);
     connectionInfo['teacherId'] = id;
-    var teacherDetails = 'SELECT * FROM users WHERE id=?';
-    connection.query(teacherDetails, [id], function(error, results) {
+      //  var teacherDetails = 'SELECT * FROM users WHERE id=?'; connection.query(teacherDetails, [id], function(error, results)
+    models.User.findOne({
+        where: {
+          id: id
+        }
+      }).then(function(results){
       console.log("GETTING DETAILS");
       console.log(id);
       console.log(results[0]);
@@ -394,32 +396,49 @@ io.sockets.on('connection', function(socket) {
   /**
    * when the teacher creates a new class
    */
-  socket.on('create-class', function(name, number) {
-    var newClassQuery = 'insert into critisearch_groups(name, owner) values (?, ?)';
-    console.log(connectionInfo.teacherId);
-    
+  socket.on('create-class', function(name, number, userId) {
+   
+   // var newClassQuery = 'insert into critisearch_groups(name, owner) values (?, ?)';
 
-    connection.query(newClassQuery, [name, connectionInfo.teacherId], function(error, results) {
-      console.log("create class");
-      console.log(results);
-      var groupId = results.insertId;
+    console.log("creating class::" + "name::" + name + "number::" + number + "userId::" + userId);
+    models.Group.create({
+      name: name,
+      ownerId: userId
+    })
+    .then(function(newGroup) {
+      console.log('Logging::newGroup created with id', newGroup.id);
+     // connectionInfo['groupId'] = newGroup.id;
 
-      var teacherRole = 'insert into critisearch_role_memberships (uid, role_id, gid) values (?, ?, ?)';
-      connection.query(teacherRole, [connectionInfo.teacherId, 1, groupId], function(error, results) {});
-
-      async.parallel(getNames(number, groupId), function(error, results) {
-        if (error) {
-          console.log(error);
-        } else if (results) {
-          console.log("result being logged");
+       Promise.all(getNames(number, newGroup.Id))
+          .then(function(results){    
           console.log(results);
-          socket.emit('class-created', name, groupId, results);
-        }
-      });
-
-      //return the names list toat goes with this class
+          socket.emit('class-created', name, newGroup.Id, results);
+          });
 
     });
+    // connection.query(newClassQuery, [name, connectionInfo.teacherId], function(error, results) {
+    //   console.log("create class");
+    //   console.log(results);
+    //   var groupId = results.insertId;
+
+    //   var teacherRole = 'insert into critisearch_role_memberships (uid, role_id, gid) values (?, ?, ?)';
+    //   connection.query(teacherRole, [connectionInfo.teacherId, 1, groupId], function(error, results) {});
+
+
+
+      // async.parallel(getNames(number, groupId), function(error, results) {
+      //   if (error) {
+      //     console.log(error);
+      //   } else if (results) {
+      //     console.log("result being logged");
+      //     console.log(results);
+      //     socket.emit('class-created', name, groupId, results);
+      //   }
+      // });
+
+    //   //return the names list toat goes with this class
+
+    // });
   });
 
   socket.on('delete-class', function(id) {
@@ -634,8 +653,8 @@ io.sockets.on('connection', function(socket) {
       text: details.query,
     }).then(function(query) {
 
-      if (details.hasOwnProperty('group') && details.group.hasOwnProperty('id')) {
-        console.log("Group: " + details);
+      if (details.hasOwnProperty('group') || details.group.hasOwnProperty('id')) {
+        console.log("Loggin Group details: " + details);
         socket.broadcast.to(details.group.id).emit('query', details.query);
         console.log("Group: " + details.group.id);
         socket.broadcast.to(details.group.id).emit('query', details.query);

@@ -21,21 +21,13 @@ angular.module('angularSocketNodeApp')
 
     $scope.search = function() {
       var details = {};
-      console.log("getting user id::" + User.getUserId());
-      
       
       if (User.getUserId() != '') {
-        
-        console.log('control goes inside if')
+
         details.userId = User.getUserId();
         
-        details.group = User.getCurrentGroup();
-        
-  
+        details.group = User.getCurrentGroup();          
       }
-      console.log('User information for sending:' + details.userId);
-      var str = JSON.stringify(User.getCurrentGroup());
-      console.log("Group information for sending :: currentGroup: " + str);
       details.query = $scope.query;
       theSocket.emit('q', details);
     };

@@ -1,4 +1,4 @@
-'use strict';
+'use strict';
 
 angular.module('angularSocketNodeApp')
   .controller('LogInCtrl', function ($scope, theSocket, $routeParams, $location) {
