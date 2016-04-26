@@ -57,9 +57,12 @@ angular.module('angularSocketNodeApp')
 
   this.setGroup = function(groupId, teacher) {
     if (teacher) {
-      var result = $.grep(userService.groups, function(e){ return e.groupId == groupId; });
-      userService.currentGroup.id = result[0].groupId;
-      userService.currentGroup.name = result[0].className;
+      var result = $.grep(userService.groups, function(e){
+        // debugger;
+       return e.id == groupId; 
+     });
+      userService.currentGroup.id = result[0].id;
+      userService.currentGroup.name = result[0].name;
       userService.currentGroup.students = result[0].users;
     } else {
       userService.currentGroup.id = groupId;
@@ -129,13 +132,14 @@ angular.module('angularSocketNodeApp')
   });
 
   theSocket.on('login-student-done', function(data){
-    console.log('success::' + data.name);
+    console.log('success::', data);
     if (data.id) {
       console.log('inside login-student-done:: setting student data')
       userService.username = data.name;
       userService.uid = data.id;
       userService.studentAuthenticated = true;
-      userService.setGroup(data.groupId, false);
+      // userService.setGroup(data.groupId, false);
+      userService.currentGroup.id=data.groupId;
       $location.path('/search');
     }
   });
@@ -149,16 +153,16 @@ angular.module('angularSocketNodeApp')
     $location.path('/search');
   });
 
-  theSocket.on('class-created', function(name, number, students) {
-    console.log(name, number, students);
-    var classStudents = [];
-    for (var i = 0; i < students.length; i++) {
-      classStudents.push(students[i].username);
-    }
+  theSocket.on('class-created', function(name, groupId, students) {
+    console.log(name, groupId, students);
+    // var classStudents = [];
+    // for (var i = 0; i < students.length; i++) {
+    //   classStudents.push(students[i].username);
+    // }
     userService.groups.push({
       className: name,
-      groupId: number,
-      users: classStudents
+      groupId: groupId,
+      users: students
     })
   });
 

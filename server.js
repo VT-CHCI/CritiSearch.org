@@ -105,9 +105,9 @@ function getRandomInt(min, max) {
 }
 
 function getName() {
-  return FIRST_NAME[getRandomInt(0, firstName.length)] + " " +
-    LAST_NAME_1[getRandomInt(0, lastName1.length)] +
-    LAST_NAME_2[getRandomInt(0, lastName2.length)];
+  return FIRST_NAME[getRandomInt(0, FIRST_NAME.length)] + " " +
+    LAST_NAME_1[getRandomInt(0, LAST_NAME_1.length)] +
+    LAST_NAME_2[getRandomInt(0, LAST_NAME_2.length)];
 }
 
 /**
@@ -130,12 +130,55 @@ function addStudent(classId) {
     });
 }
 
+function range(start, stop, step) {
+  if (typeof stop == 'undefined') {
+    // one param defined
+    stop = start;
+    start = 0;
+  }
+
+  if (typeof step == 'undefined') {
+    step = 1;
+  }
+
+  if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) {
+    return [];
+  }
+
+  var result = [];
+  for (var i = start; step > 0 ? i < stop : i > stop; i += step) {
+    result.push(i);
+  }
+
+  return result;
+};
+
 /**
  * get an array of names for the class, add them to the class
  * and create them as users.
  */
-function getNames(count, classId) {
-  var names = [];
+
+function getUniqueName () {
+  var proposedName = getName();
+  return models.User.findOrCreate({
+    where: {
+      name: proposedName
+    }
+  })
+    .spread(function (user, created) {
+      if (!created) {
+        return getUniqueName();
+      } else{
+        return user;
+      }
+    });
+}
+
+function getNames(count) {
+  return range(count).map(function () {
+    return getUniqueName();      
+  });
+  // var names = [];
   // mdn is really the best js resource
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
   return Promise.all(_.range(count).map(function() {
@@ -200,7 +243,8 @@ io.sockets.on('connection', function(socket) {
       }
     }).then(function(newlyDisconnectedClient) {
       if (newlyDisconnectedClient) {
-        return newlyDisconnectedClient.setDisconnected(disconnectedAt);
+        newlyDisconnectedClient.disconnected = disconnectedAt;
+        newlyDisconnectedClient.save();
       }
     });
   });
@@ -225,18 +269,18 @@ io.sockets.on('connection', function(socket) {
           });
         } else {
           console.log('creating a new teacher as a user');
-          models.User.create({            
-              email: email,
-              name: username,
-              password: password,
-              role: models.ROLES.FACILITATOR           
+          models.User.create({
+            email: email,
+            name: username,
+            password: password,
+            role: models.ROLES.FACILITATOR
           }).then(function(user) {
             connectionInfo['teacherId'] = user.id;
             models.Client.findOne({
               where: {
                 socketid: socket.id
               }
-            }).then(function (client) {
+            }).then(function(client) {
               client.userId = user.id;
               client.save();
             })
@@ -254,29 +298,29 @@ io.sockets.on('connection', function(socket) {
       });
     // connection.query(usernames, [username], function(error, results) {
     //   if (results.length > 0) {
-    //     console.log("Username already exists");
+    //   console.log("Username already exists");
     //   } else if (email != null) {
-    //     var newUser = 'insert into users (name, password, email) values (?, ?, ?)'
-    //     connection.query(newUser, [username, password, email], function(error, results) {
-    //       console.log(results);
+    //   var newUser = 'insert into users (name, password, email) values (?, ?, ?)'
+    //   connection.query(newUser, [username, password, email], function(error, results) {
+    //     console.log(results);
 
-    //       connectionInfo['teacherId'] = results.insertId;
-    //       socket.emit('login-teacher-done', {success: true});
-    //     });
+    //     connectionInfo['teacherId'] = results.insertId;
+    //     socket.emit('login-teacher-done', {success: true});
+    //   });
     //   } else {
-    //     console.log("invalid email");
+    //   console.log("invalid email");
     //   }
     // });
 
     // This works but who knows why
     /*if (connection.query(usernames, [username], function(error, results) {
-        return (results.length > 0);
+      return (results.length > 0);
       })) {
       console.log("Username already exists");
     } else if (email != null) {
       var newUser = 'insert into user (name, password, email) values (?, ?, ?)'
       connection.query(newUser, [username, password, email], function(error, results) {
-        socket.emit('userAdded', results);
+      socket.emit('userAdded', results);
       });
     } else {
       console.log("invalid email");
@@ -315,7 +359,7 @@ io.sockets.on('connection', function(socket) {
               where: {
                 socketid: socket.id
               }
-            }).then(function (client) {
+            }).then(function(client) {
               client.userId = user.id;
               client.save();
             });
@@ -373,12 +417,12 @@ io.sockets.on('connection', function(socket) {
   socket.on('teacher-details', function(id) {
     console.log(id);
     connectionInfo['teacherId'] = id;
-      //  var teacherDetails = 'SELECT * FROM users WHERE id=?'; connection.query(teacherDetails, [id], function(error, results)
+    //  var teacherDetails = 'SELECT * FROM users WHERE id=?'; connection.query(teacherDetails, [id], function(error, results)
     models.User.findOne({
-        where: {
-          id: id
-        }
-      }).then(function(results){
+      where: {
+        id: id
+      }
+    }).then(function(results) {
       console.log("GETTING DETAILS");
       console.log(id);
       console.log(results[0]);
@@ -397,44 +441,65 @@ io.sockets.on('connection', function(socket) {
    * when the teacher creates a new class
    */
   socket.on('create-class', function(name, number, userId) {
-   
-   // var newClassQuery = 'insert into critisearch_groups(name, owner) values (?, ?)';
 
+    // var newClassQuery = 'insert into critisearch_groups(name, owner) values (?, ?)';
+    // create a group , 
+    //generate sillynames for students, 
+    //add to user table and 
+    //add students to membership
     console.log("creating class::" + "name::" + name + "number::" + number + "userId::" + userId);
     models.Group.create({
       name: name,
       ownerId: userId
     })
-    .then(function(newGroup) {
-      console.log('Logging::newGroup created with id', newGroup.id);
-     // connectionInfo['groupId'] = newGroup.id;
+      .then(function(newGroup) {
+        //add teacher to the membership, 
+        console.log('Logging::newGroup created with id', newGroup.id);
 
-       Promise.all(getNames(number, newGroup.Id))
-          .then(function(results){    
-          console.log(results);
-          socket.emit('class-created', name, newGroup.Id, results);
+        //   var teacherRole = 'insert into critisearch_role_memberships (uid, role_id, gid) values (?, ?, ?)';
+        var teacherMembership = models.Membership.create({
+          groupId: newGroup.id,
+          userId: userId
+        });
+        var studentNames = getNames(number);
+
+        // studentNames.unshift(teacherMembership);
+
+        // <to do> add an entry in membership and then call the get names 
+        Promise.all(studentNames)
+          .then(function(studentResults) {
+            // console.log(studentResults);
+            return Promise.all(studentResults.map(function (student) {
+              return models.Membership.create({
+                groupId: newGroup.id,
+                userId: student.id
+              });
+            }))
+            .then(function () {
+              socket.emit('class-created', name, newGroup.id, studentResults);
+
+            });
           });
 
-    });
+      });
     // connection.query(newClassQuery, [name, connectionInfo.teacherId], function(error, results) {
     //   console.log("create class");
     //   console.log(results);
     //   var groupId = results.insertId;
 
-    //   var teacherRole = 'insert into critisearch_role_memberships (uid, role_id, gid) values (?, ?, ?)';
     //   connection.query(teacherRole, [connectionInfo.teacherId, 1, groupId], function(error, results) {});
 
 
 
-      // async.parallel(getNames(number, groupId), function(error, results) {
-      //   if (error) {
-      //     console.log(error);
-      //   } else if (results) {
-      //     console.log("result being logged");
-      //     console.log(results);
-      //     socket.emit('class-created', name, groupId, results);
-      //   }
-      // });
+    // async.parallel(getNames(number, groupId), function(error, results) {
+    //   if (error) {
+    //   console.log(error);
+    //   } else if (results) {
+    //   console.log("result being logged");
+    //   console.log(results);
+    //   socket.emit('class-created', name, groupId, results);
+    //   }
+    // });
 
     //   //return the names list toat goes with this class
 
@@ -485,16 +550,20 @@ io.sockets.on('connection', function(socket) {
         }).then(function(results) {
 
           if (results.length > 0) {
-            user.groupId = results[0].groupId;
+            // user.groupId = results[0].groupId;
 
             socket.join(user.groupId);
-            //   console.log(user);
-            socket.emit('login-student-done', user);
+              console.log(user);
+            socket.emit('login-student-done', {
+              id: user.id,
+              name: user.name,
+              groupId: results[0].groupId,
+            });
             models.Client.findOne({
               where: {
                 socketid: socket.id
               }
-            }).then(function (client) {
+            }).then(function(client) {
               client.userId = user.id;
               client.save();
             });
@@ -514,44 +583,17 @@ io.sockets.on('connection', function(socket) {
 
   // <Sarang m1> 
 
-
-  //     if (results.length > 0) {
-  //       results[0].success = false;
-  //       console.log("Looking for " + results[0].name);
-  //       if (details.sillyname == results[0].name) {
-  //         results[0].success = true;
-  //         console.log("User match");
-  //       }
-
-  //       var user = results[0];
-
-  //       var findGroup = 'select * from critisearch_role_memberships where uid=?';
-  //       connection.query(findGroup, [user.id], function(error, results) {
-  //         if (error == null) {
-  //           user.groupId = results[0].gid;
-  //           socket.join(user.groupId);
-  //           socket.emit('login-student-done', user);
-  //         }
-  //       })
-  //     } else { //this is for if the user DNE
-  //       socket.emit('login-student-done', {
-  //         success: false,
-  //         message: 'incorrect username.'
-  //       });
-  //       // TODO: send back a message that the user does not exist
-  //     }
-  //   });
-  // });
-
   socket.on('teacher', function(groupId) {
-    console.log('Teacher Joined')
+    console.log('Teacher Joined', groupId);
     socket.join(groupId);
-    var oldResults = 'SELECT q.query FROM critisearch_queries q ' +
-      'join critisearch_role_memberships m on m.uid=q.searcher ' +
-      'where m.gid=? and time > date_sub(now(),INTERVAL 90 MINUTE) order by time desc;';
-       connection.query(oldResults, [groupId], function(error, results) {
-      socket.emit('oldQueries', results);
-    });
+    
+    // get the most recent results if the tecaher wasnt logged in for some reason or if the teacher closed the tab and joined again
+    // var oldResults = 'SELECT q.query FROM critisearch_queries q ' +
+    //   'join critisearch_role_memberships m on m.uid=q.searcher ' +
+    //   'where m.gid=? and time > date_sub(now(),INTERVAL 90 MINUTE) order by time desc;';
+    // connection.query(oldResults, [groupId], function(error, results) {
+    //   socket.emit('oldQueries', results);
+    // });
   });
 
   socket.on('info-for-server', function(msg) {
@@ -563,63 +605,63 @@ io.sockets.on('connection', function(socket) {
   // When a user promotes a query an event is logged in the event table with the query details, client details and the query result which was voted up 
   socket.on('promoted', function(result) {
     models.Result.findById(result.id)
-        .then(function (foundResult) {
-          models.Client.findOne({
-            where: {
-              socketid: socket.id
-            }
-          }).then(function (client) {
-            models.Event.create({
-              description: JSON.stringify('client with id :: ' + client.id + ' voted down the result :: ' + foundResult.title + ' for ' + foundResult.title),
-              type:models.EVENT_TYPE.VOTE_UP,
-              queryId: foundResult.queryId,
-              clientId: client.id,
-              resultId: foundResult.id
-            });
+      .then(function(foundResult) {
+        models.Client.findOne({
+          where: {
+            socketid: socket.id
+          }
+        }).then(function(client) {
+          models.Event.create({
+            description: JSON.stringify('client with id :: ' + client.id + ' voted down the result :: ' + foundResult.title + ' for ' + foundResult.title),
+            type: models.EVENT_TYPE.VOTE_UP,
+            queryId: foundResult.queryId,
+            clientId: client.id,
+            resultId: foundResult.id
           });
         });
-    
+      });
+
   });
 
   // When a user promotes a query an event is logged in the event table with the query details, client details and the query result which was voted down
   socket.on('demoted', function(result) {
-    
-        models.Result.findById(result.id)
-        .then(function (foundResult) {
-          models.Client.findOne({
-            where: {
-              socketid: socket.id
-            }
-          }).then(function (client) {
-            models.Event.create({
-              description: JSON.stringify('client with id :: ' + client.id + ' voted down the result :: ' + foundResult.title + ' for ' + foundResult.title),
-              type:models.EVENT_TYPE.VOTE_DOWN,
-              queryId: foundResult.queryId,
-              clientId: client.id,
-              resultId: foundResult.id
-            });
+
+    models.Result.findById(result.id)
+      .then(function(foundResult) {
+        models.Client.findOne({
+          where: {
+            socketid: socket.id
+          }
+        }).then(function(client) {
+          models.Event.create({
+            description: JSON.stringify('client with id :: ' + client.id + ' voted down the result :: ' + foundResult.title + ' for ' + foundResult.title),
+            type: models.EVENT_TYPE.VOTE_DOWN,
+            queryId: foundResult.queryId,
+            clientId: client.id,
+            resultId: foundResult.id
           });
         });
+      });
   });
 
   socket.on('follow', function(result) {
-       
+
     models.Result.findById(result.id)
-        .then(function (foundResult) {
-          models.Client.findOne({
-            where: {
-              socketid: socket.id
-            }
-          }).then(function (client) {
-            models.Event.create({
-              description: JSON.stringify('client with id :: ' + client.id + ' followed the link for ' + foundResult.title),
-              type:models.EVENT_TYPE.FOLLOW,
-              queryId: foundResult.queryId,
-              clientId: client.id,
-              resultId: foundResult.id
-            });
+      .then(function(foundResult) {
+        models.Client.findOne({
+          where: {
+            socketid: socket.id
+          }
+        }).then(function(client) {
+          models.Event.create({
+            description: JSON.stringify('client with id :: ' + client.id + ' followed the link for ' + foundResult.title),
+            type: models.EVENT_TYPE.FOLLOW,
+            queryId: foundResult.queryId,
+            clientId: client.id,
+            resultId: foundResult.id
           });
         });
+      });
   });
 
   socket.on('log-out-class', function(classId) {
@@ -636,9 +678,9 @@ io.sockets.on('connection', function(socket) {
   // <Sarang> details is unclear
   socket.on('q', function(details) {
     // <Sarang> 
-    console.log('logging details::'+ JSON.stringify(details));
+    console.log('logging details::' + JSON.stringify(details));
     console.log(details.userId);
-    
+
 
 
 
@@ -655,53 +697,54 @@ io.sockets.on('connection', function(socket) {
 
       if (details.hasOwnProperty('group') || details.group.hasOwnProperty('id')) {
         console.log("Loggin Group details: " + details);
-        socket.broadcast.to(details.group.id).emit('query', details.query);
+        // socket.broadcast.to(details.group.id).emit('query', details.query);
         console.log("Group: " + details.group.id);
+        console.log('broadcasting to room', details.group.id);
         socket.broadcast.to(details.group.id).emit('query', details.query);
         models.Membership.findOne({
           where: {
             userId: details.userId,
             groupId: details.group.id
           }
-        }).then(function (foundMembership) {
+        }).then(function(foundMembership) {
           query.authorGroupId = foundMembership.id;
           query.save();
         });
       }
 
 
-    models.Client.findOne({
-            where: {
-              socketid: socket.id
-            }
-          }).then(function (client) {
-            models.Event.create({
-              description: JSON.stringify('client with id :: ' + client.id + ' searched the link for ' + query.text),
-              type:models.EVENT_TYPE.SEARCH,
-              clientId: client.id,
-              queryId:query.id
-            });
+      models.Client.findOne({
+        where: {
+          socketid: socket.id
+        }
+      }).then(function(client) {
+        models.Event.create({
+          description: JSON.stringify('client with id :: ' + client.id + ' searched the link for ' + query.text),
+          type: models.EVENT_TYPE.SEARCH,
+          clientId: client.id,
+          queryId: query.id
         });
-        
+      });
+
       google(details.query, function(err, response) {
-         console.log('search results for', details.query, response.links);
+        // console.log('search results for', details.query, response.links);
         var processedResults = getProcessedResults(response.links);
-      
+
         var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
-          return models.Result.create({ 
-            link: result.link, 
-            description: result.description, 
-            result_order: idx , 
+          return models.Result.create({
+            link: result.link,
+            description: result.description,
+            result_order: idx,
             title: result.title,
             result_relevance: models.RELEVANCE.VOTE_NONE,
             queryId: query.id
           });
         });
         Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
-          .then(function(sequelizeResults){    
+          .then(function(sequelizeResults) {
             socket.emit('search-results', sequelizeResults);
           });
- 
+
 
       });
     }).catch(function(err) {
@@ -715,9 +758,9 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('critisort', function(uid) {
-      
-      var details = 'user sorted the list';
-      models.Event.create({
+
+    var details = 'user sorted the list';
+    models.Event.create({
       description: JSON.stringify(details),
       type: models.EVENT_TYPE.CRITISORT
     });

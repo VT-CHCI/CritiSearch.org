@@ -21,12 +21,13 @@ angular.module('angularSocketNodeApp')
 
     $scope.search = function() {
       var details = {};
-      
       if (User.getUserId() != '') {
 
         details.userId = User.getUserId();
         
         details.group = User.getCurrentGroup();          
+      } else {
+        console.log('no user', User);
       }
       details.query = $scope.query;
       theSocket.emit('q', details);
