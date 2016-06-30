@@ -93,8 +93,9 @@ angular.module('angularSocketNodeApp')
   };
 
   theSocket.on('login-teacher-done', function(data){
-    console.log(data);
+    console.log('login-teacher-done' + JSON.stringify(data));
     if (data.success) {
+
       userService.username = data.user.name;
       userService.uid = data.uid;
       userService.authenticated = true;
@@ -102,7 +103,8 @@ angular.module('angularSocketNodeApp')
 
       $cookies.uid = data.uid;
       $cookies.key = data.key;
-      theSocket.emit('update-cookies', {uid: data.uid, key: md5.createHash(data.key.toString())})
+      console.log('cookie info::' + $cookies.key);
+      theSocket.emit('update-cookies', {uid: data.uid, key: data.key})
       $location.path('/teacher');
     }
   });
@@ -167,19 +169,19 @@ angular.module('angularSocketNodeApp')
   });
 
   theSocket.on('cookies-login', function(data) {
-    console.log('cookies returned');
-    console.log(data);
+    console.log('cookies returned::' + JSON.stringify(data));
+   
 
     $cookies.uid = data.uid;
-    $cookies.key = data.newKey;
+    $cookies.key = data.key;
 
     var cookie = {
       uid: $cookies.uid,
-      key: md5.createHash($cookies.key.toString())
+      key: $cookies.key
     }
-
+    console.log("updating cookies... sending to server" + JSON.stringify(cookie));
     theSocket.emit('update-cookies', cookie);
-    console.log("looking for details");
+    
     console.log($cookies.uid);
     theSocket.emit('teacher-details', $cookies.uid);
   })

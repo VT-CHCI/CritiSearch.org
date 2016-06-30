@@ -50,6 +50,7 @@ models.start()
 
 // filters out google's enhanced results
 function getProcessedResults(results) {
+
   var resultsToSend = [];
   for (var i = 0; i < results.length; i++) {
     if (results[i].hasOwnProperty('link') && results[i].title.length > 0) {
@@ -114,6 +115,7 @@ function getName() {
  * add a student to the user table
  */
 function addStudent(classId) {
+  console.log('Creating student for class::' + classId);
   var name = getName();
   return models.User.findOrCreate({
       where: {
@@ -123,6 +125,7 @@ function addStudent(classId) {
     })
     .spread(function(thisUser, created) {
       if (created) {
+        onsole.log('User created successfully');
         return thisUser;
       } else {
         return addStudent(classId);
@@ -160,15 +163,19 @@ function range(start, stop, step) {
 
 function getUniqueName () {
   var proposedName = getName();
+
   return models.User.findOrCreate({
     where: {
-      name: proposedName
+      name: proposedName,
+      role: models.ROLES.PARTICIPANT
     }
   })
     .spread(function (user, created) {
       if (!created) {
+
         return getUniqueName();
       } else{
+
         return user;
       }
     });
@@ -182,7 +189,7 @@ function getNames(count) {
   // mdn is really the best js resource
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
   return Promise.all(_.range(count).map(function() {
-    return addStudent(classId); // TODO: is this a race condition for unique sillynames?
+    return (classId); // TODO: is this a race condition for unique sillynames?
   }));
 }
 
@@ -253,7 +260,7 @@ io.sockets.on('connection', function(socket) {
    *
    * Handle when someone tries to sign up
    */
-  socket.on('signup', function(username, password, email) {
+  socket.on('signup', function(username, password, email, cookie) {
     console.log('Database add ' + username + ', ' + password + ', ' + email);
 
     var reason;
@@ -283,6 +290,11 @@ io.sockets.on('connection', function(socket) {
             }).then(function(client) {
               client.userId = user.id;
               client.save();
+              console.log('cookie has key::' + cookie.key);
+              models.Cookie.create({
+                uid: cookie.uid,
+                key: cookie.key
+          });
             })
             socket.emit('login-teacher-done', {
               success: true,
@@ -377,7 +389,7 @@ io.sockets.on('connection', function(socket) {
 
   socket.on('check-cookies', function(cookies) {
     console.log('checking cookies');
-    console.log(cookies);
+    console.log('logging cookies ::' + JSON.stringify(cookies));
 
     models.Cookie.findOne({
         where: {
@@ -386,26 +398,31 @@ io.sockets.on('connection', function(socket) {
         }
       })
       .then((cookieResults) => {
-        console.log(cookieResults);
-        if (cookieResults && cookieResults.length > 0) {
+        console.log('cookie results ::' + JSON.stringify(cookieResults));
+        if (cookieResults ) {
+          console.log('cookie matched');
           socket.emit('cookies-login', {
-            uid: cookies.uid
+            uid: cookies.uid,
+            key: cookies.key
           });
         }
       });
   });
 
   socket.on('update-cookies', function(cookies) {
+    console.log('update-cookies data recieved::' + JSON.stringify(cookies));
     models.Cookie.findOne({
         where: {
           uid: cookies.uid
         }
       })
       .then((foundCookie) => {
+        
         if (foundCookie) {
           foundCookie.key = cookies.key;
           foundCookie.save()
             .then(() => {
+              console.log('sending updated cookie data to client');
               socket.emit('cookies-updated');
             })
         } else {
@@ -415,7 +432,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('teacher-details', function(id) {
-    console.log(id);
+    console.log('logging teacher id::' + id);
     connectionInfo['teacherId'] = id;
     //  var teacherDetails = 'SELECT * FROM users WHERE id=?'; connection.query(teacherDetails, [id], function(error, results)
     models.User.findOne({
@@ -423,15 +440,15 @@ io.sockets.on('connection', function(socket) {
         id: id
       }
     }).then(function(results) {
-      console.log("GETTING DETAILS");
-      console.log(id);
-      console.log(results[0]);
-      var details = {
-        username: results[0].name,
-        uid: results[0].id
-      }
+      console.log(JSON.stringify(results));
 
-      getClasses(connectionInfo, socket);
+
+      var details = {
+        username: results.name,
+        uid: results.id
+      }
+      console.log('teacher-details:: on cookie match :' + JSON.stringify(details));
+      //<sarang> getClasses(connectionInfo, socket);
 
       socket.emit('teacher-details-done', details);
     });
@@ -516,8 +533,24 @@ io.sockets.on('connection', function(socket) {
     });
   });
 
-  socket.on('add-students', function(id, number) {
-    // getNames(number, id, connectionInfo.teacherId)
+
+  // <Next To Do> when new students are added for each student create a membership association and pass on to the client side
+  socket.on('add-students', function(classId, number) {
+  var addedStudents =  getNames(number, classId, connectionInfo.teacherId)
+    Promise.all(addedStudents)
+          .then(function(studentResults) {
+             console.log('Logging studentResults::' + studentResults);
+            return Promise.all(studentResults.map(function (student) {
+              return models.Membership.create({
+                groupId: classId,
+                userId: student.id
+              });
+            }))
+            .then(function () {
+              console.log('Sending data::' + studentResults + 'Group::' + classId);
+              socket.emit('students-added', studentResults, classId);
+            });
+          });
   });
 
 
@@ -553,7 +586,7 @@ io.sockets.on('connection', function(socket) {
             // user.groupId = results[0].groupId;
 
             socket.join(user.groupId);
-              console.log(user);
+              console.log('Logging user on student login::' + user);
             socket.emit('login-student-done', {
               id: user.id,
               name: user.name,
@@ -679,18 +712,10 @@ io.sockets.on('connection', function(socket) {
   socket.on('q', function(details) {
     // <Sarang> 
     console.log('logging details::' + JSON.stringify(details));
-    console.log(details.userId);
+    console.log('logging user details::' + details.userId);
 
 
-
-
-
-    // models.Event.create({
-    //   description: JSON.stringify(details.query),
-    //   type: models.EVENT_TYPE.SEARCH
-    // });
-
-    // <Sarang> need to sequelize . do we need to insert into a new table critisearch queries and therefore define it in models.js?
+    // <Sarang> when a client who is not logged in queries no results are retrieved
     var createdQuery = models.Query.create({
       text: details.query,
     }).then(function(query) {

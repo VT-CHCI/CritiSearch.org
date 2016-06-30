@@ -22,8 +22,12 @@ angular.module('angularSocketNodeApp')
   }
 
   if ($cookies.hasOwnProperty('key')) {
-    cookie.key = md5.createHash($cookies.key.toString());
+    console.log('cookie has key::' + $cookies.key);
+    //cookie.key = md5.createHash($cookies.key.toString());
+     cookie.key = $cookies.key;
+    console.log('cookie hash created :: ' + cookie.key);
   } else {
+    console.log('no hash created');
     cookie.key = -1;
   }
 
@@ -32,7 +36,7 @@ angular.module('angularSocketNodeApp')
   $scope.logIn = function() {
     console.log($scope.username);
     var password = md5.createHash($scope.password);
-    console.log(password);
+    console.log('logging hashed password' + password);
     User.logInTeacher($scope.username, password);
   }
 

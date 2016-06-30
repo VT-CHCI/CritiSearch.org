@@ -16,6 +16,7 @@ angular.module('angularSocketNodeApp')
 
     $scope.addStudents = function() {
       theSocket.emit('add-students', $scope.currentClass.id, $scope.number);
+
     }
 
     $scope.deleteClass = function() {
@@ -52,5 +53,15 @@ angular.module('angularSocketNodeApp')
     theSocket.on('oldQueries', function(data) {
     	searchScope.queries = searchScope.queries.concat(data);
     });
+
+     theSocket.on('students-added', function(studentResults,classId) {
+
+      console.log('before concat::' , $scope.currentClass.students);
+      User.currentGroup.students = User.currentGroup.students.concat(studentResults);
+       console.log($scope.currentClass.students);
+      //$('.modal-backdrop').remove();
+      //User.deleteClass(id);
+     // $location.path('/teacher/');
+    })
 
 });
