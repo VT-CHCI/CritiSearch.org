@@ -43,7 +43,8 @@ angular.module('angularSocketNodeApp')
     $scope.originalSort = function() {
       var newResults = [];
       for (var i in searchScope.results) {
-        newResults[searchScope.results[i].order] = searchScope.results[i];
+        
+        newResults[searchScope.results[i].result_order] = searchScope.results[i];
       }
       searchScope.results = newResults;
       $scope.originalOrder = true;
@@ -85,14 +86,19 @@ angular.module('angularSocketNodeApp')
     }
 
     theSocket.on('search-results', function(data) {
-      for (var i in data) {
+      for (var i in data) {     
         var newurl = data[i].link.substring(7);
+        
         newurl = newurl.substring(0, newurl.indexOf('/'));
+        
         data[i].newurl = newurl;
+        data[i].status = -2;
+
   
       }
 
       searchScope.results = data;
+     
     });
 
     theSocket.on('sort-results', function(data) {

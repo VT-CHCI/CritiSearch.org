@@ -710,9 +710,7 @@ io.sockets.on('connection', function(socket) {
 
   // <Sarang> details is unclear
   socket.on('q', function(details) {
-    // <Sarang> 
-    console.log('logging details::' + JSON.stringify(details));
-    console.log('logging user details::' + details.userId);
+
 
 
     // <Sarang> when a client who is not logged in queries no results are retrieved
@@ -720,7 +718,8 @@ io.sockets.on('connection', function(socket) {
       text: details.query,
     }).then(function(query) {
 
-      if (details.hasOwnProperty('group') || details.group.hasOwnProperty('id')) {
+    //  <sarang> removed the following code from he if condition below so that a user who is not logged in can query
+      if (details.hasOwnProperty('userId')) {
         console.log("Loggin Group details: " + details);
         // socket.broadcast.to(details.group.id).emit('query', details.query);
         console.log("Group: " + details.group.id);
