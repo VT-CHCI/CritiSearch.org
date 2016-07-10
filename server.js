@@ -291,9 +291,10 @@ io.sockets.on('connection', function(socket) {
               client.userId = user.id;
               client.save();
               console.log('cookie has key::' + cookie.key);
+              var cookiekey = getKey();
               models.Cookie.create({
-                uid: cookie.uid,
-                key: cookie.key
+                uid: user.id,
+                key: cookiekey
           });
             })
             socket.emit('login-teacher-done', {
@@ -587,12 +588,16 @@ io.sockets.on('connection', function(socket) {
 
             socket.join(user.groupId);
               console.log('Logging user on student login::' + user);
-            socket.emit('login-student-done', {
-              id: user.id,
-              name: user.name,
-              groupId: results[0].groupId,
-            });
-            models.Client.findOne({
+              var studentObj = {
+
+                id: user.id,
+                name: user.name,
+                groupId: results[0].groupId
+              };
+
+              io.to(studentObj.groupId).emit('login-student-alert', studentObj)
+              socket.emit('login-student-done', studentObj);
+              models.Client.findOne({
               where: {
                 socketid: socket.id
               }

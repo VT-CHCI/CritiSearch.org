@@ -64,4 +64,10 @@ angular.module('angularSocketNodeApp')
      // $location.path('/teacher/');
     })
 
+      theSocket.on('login-student-alert', function(studentObj) {
+      console.log('New student logged in::'+ JSON.stringify(studentObj));
+      window.alert("New student::" + JSON.stringify(studentObj) + " joined the class");
+   
+    });
+
 });

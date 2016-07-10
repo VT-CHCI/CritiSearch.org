@@ -6,7 +6,8 @@ angular.module('angularSocketNodeApp')
     
     // <Sarang> taking the cookie information at signup to send to the browser and store in the backend
     var cookie = {
-    uid: $cookies.uid
+    uid: $cookies.uid,
+    key: $cookies.key
   }
 
   if ($cookies.hasOwnProperty('key')) {

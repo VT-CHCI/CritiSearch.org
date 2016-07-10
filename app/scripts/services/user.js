@@ -163,7 +163,7 @@ angular.module('angularSocketNodeApp')
     // }
     userService.groups.push({
       className: name,
-      groupId: groupId,
+      id: groupId,
       users: students
     })
   });
