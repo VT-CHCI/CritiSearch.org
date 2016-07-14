@@ -5,7 +5,8 @@ angular.module('angularSocketNodeApp').directive('searchResults', function (){
     replace: true,
     templateUrl: '/scripts/directives/search-results.html',
     scope: {
-      results: '='
+      results: '=',
+      nextResults: '='
     },
     link: function(scope, element, attrs) {
     }

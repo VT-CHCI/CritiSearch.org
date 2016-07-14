@@ -85,16 +85,18 @@ angular.module('angularSocketNodeApp')
       console.log($scope.results);
     }
 
-    theSocket.on('search-results', function(data) {
-      for (var i in data) {     
-        var newurl = data[i].link.substring(7);
-        
-        newurl = newurl.substring(0, newurl.indexOf('/'));
-        
-        data[i].newurl = newurl;
-        data[i].status = -2;
+    $scope.nextResults = function () {
+      console.log('get next results!')
+    }
 
-  
+    theSocket.on('search-results', function (data) {
+      for (var i in data) {
+        var newurl = data[i].link.substring(7)
+
+        newurl = newurl.substring(0, newurl.indexOf('/'))
+
+        data[i].newurl = newurl
+        data[i].status = -2
       }
 
       searchScope.results = data;

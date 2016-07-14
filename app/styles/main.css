@@ -204,3 +204,9 @@ img.add-class {
 .padding {
     height: 70px;
 }
+
+.items-wrap {
+    position: absolute;
+    overflow: scroll;
+    height:100%;
+}
