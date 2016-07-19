@@ -87,6 +87,7 @@ angular.module('angularSocketNodeApp')
 
     $scope.nextResults = function () {
       console.log('get next results!')
+      // HERE IS WHERE WE EMIT FOR MORE_RESULTS!!!!
     }
 
     theSocket.on('search-results', function (data) {
