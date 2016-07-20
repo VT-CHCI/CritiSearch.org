@@ -21,6 +21,7 @@ angular.module('angularSocketNodeApp')
 
     $scope.search = function() {
       var details = {};
+      $scope.results = [];
       if (User.getUserId() != '') {
 
         details.userId = User.getUserId();
@@ -86,22 +87,20 @@ angular.module('angularSocketNodeApp')
     }
 
     $scope.nextResults = function () {
-      console.log('get next results!')
-      // HERE IS WHERE WE EMIT FOR MORE_RESULTS!!!!
+      
+      console.log('loading more results');
+      theSocket.emit('load-more-results', $scope.userService.uid);      
     }
 
-    theSocket.on('search-results', function (data) {
-      for (var i in data) {
-        var newurl = data[i].link.substring(7)
-
-        newurl = newurl.substring(0, newurl.indexOf('/'))
-
-        data[i].newurl = newurl
-        data[i].status = -2
+   
+    theSocket.on('search-results', function(data) {
+      for (var i in data) {     
+        var newurl = data[i].link.substring(7);        
+        newurl = newurl.substring(0, newurl.indexOf('/'));        
+        data[i].newurl = newurl;
+        data[i].status = 0;  
       }
-
-      searchScope.results = data;
-     
+      searchScope.results = searchScope.results.concat(data);     
     });
 
     theSocket.on('sort-results', function(data) {

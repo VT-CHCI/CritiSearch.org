@@ -22,7 +22,8 @@ var _ = require('lodash');
 
 // Limit the results per page for testing
 google.resultsPerPage = 10;
-
+// This dictionary holds the respone object for the search results for a client using the socket id
+var responsesForClient= {};
 /**
  * ~~ Initialization ~~
  * Steps required to start up the app and provide future functions with
@@ -708,22 +709,32 @@ io.sockets.on('connection', function(socket) {
   })
 
 
-  /**
-   * When the user searches
+/**
+   * When the user searchesfor more results. First identify the query and client from the socket id, then load more results
    */
 
+  socket.on('load-more-results', function(uid) {
+    console.log('fetching more results for uid::' + socket.id);
+    if(responsesForClient &&
+      responsesForClient.hasOwnProperty(socket.id) &&
+      responsesForClient[socket.id].hasOwnProperty('response')&&
+      responsesForClient[socket.id].response.next) {
+    
+      responsesForClient[socket.id].response.next();
+    }
+  });
 
-  // <Sarang> details is unclear
+    
+
+
+
+  // When the user searches for the first time
   socket.on('q', function(details) {
-
-
-
     // <Sarang> when a client who is not logged in queries no results are retrieved
     var createdQuery = models.Query.create({
       text: details.query,
     }).then(function(query) {
-
-    //  <sarang> removed the following code from he if condition below so that a user who is not logged in can query
+      //  <sarang> removed the following code from he if condition below so that a user who is not logged in can query
       if (details.hasOwnProperty('userId')) {
         console.log("Loggin Group details: " + details);
         // socket.broadcast.to(details.group.id).emit('query', details.query);
@@ -754,21 +765,28 @@ io.sockets.on('connection', function(socket) {
           queryId: query.id
         });
       });
-
+      responsesForClient[socket.id] = {
+        nextIndex: 0
+      };
       google(details.query, function(err, response) {
         // console.log('search results for', details.query, response.links);
         var processedResults = getProcessedResults(response.links);
+        responsesForClient[socket.id].response = response;
+
+        var incrementIndex = responsesForClient[socket.id].nextIndex;
+
 
         var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
           return models.Result.create({
             link: result.link,
             description: result.description,
-            result_order: idx,
+            result_order: idx + incrementIndex,
             title: result.title,
             result_relevance: models.RELEVANCE.VOTE_NONE,
             queryId: query.id
           });
         });
+        responsesForClient[socket.id].nextIndex +=processedResults.length
         Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
           .then(function(sequelizeResults) {
             socket.emit('search-results', sequelizeResults);
@@ -779,13 +797,7 @@ io.sockets.on('connection', function(socket) {
     }).catch(function(err) {
       console.log(err);
     });
-
-    // TODO: if the user is anonymous do not log the membership information
-
-
-
   });
-
   socket.on('critisort', function(uid) {
 
     var details = 'user sorted the list';
