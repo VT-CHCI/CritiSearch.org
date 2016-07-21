@@ -19,6 +19,23 @@ var google = require('google'); // api docs: https://www.npmjs.com/package/googl
 // var async = require('async');  //probbaly shouldn't need this now with promises
 var models = require('./models');
 var _ = require('lodash');
+'use strict' 
+var scholar = require('google-scholar');
+
+google.requestOptions = {
+  timeout: 30000,
+  gzip: true,
+  headers: {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate',
+    'Accept-Language': 'en;q=0.5',
+    'Cache-Control': 'max-age=0',
+    'Connection': 'keep-alive',
+    'DNT': 1
+  }
+}
+ 
+
 
 // Limit the results per page for testing
 google.resultsPerPage = 10;
@@ -726,15 +743,13 @@ io.sockets.on('connection', function(socket) {
 
     
 
-
-
   // When the user searches for the first time
   socket.on('q', function(details) {
-    // <Sarang> when a client who is not logged in queries no results are retrieved
+    console.log('details.searchScholar:' + details.searchScholar);      
+    // create query in the database and log group details if any
     var createdQuery = models.Query.create({
       text: details.query,
     }).then(function(query) {
-      //  <sarang> removed the following code from he if condition below so that a user who is not logged in can query
       if (details.hasOwnProperty('userId')) {
         console.log("Loggin Group details: " + details);
         // socket.broadcast.to(details.group.id).emit('query', details.query);
@@ -752,7 +767,7 @@ io.sockets.on('connection', function(socket) {
         });
       }
 
-
+      // Create an event for the client who fires the query
       models.Client.findOne({
         where: {
           socketid: socket.id
@@ -765,39 +780,73 @@ io.sockets.on('connection', function(socket) {
           queryId: query.id
         });
       });
+
       responsesForClient[socket.id] = {
         nextIndex: 0
       };
-      google(details.query, function(err, response) {
-        // console.log('search results for', details.query, response.links);
-        var processedResults = getProcessedResults(response.links);
-        responsesForClient[socket.id].response = response;
-
-        var incrementIndex = responsesForClient[socket.id].nextIndex;
-
-
-        var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
-          return models.Result.create({
-            link: result.link,
-            description: result.description,
-            result_order: idx + incrementIndex,
-            title: result.title,
-            result_relevance: models.RELEVANCE.VOTE_NONE,
-            queryId: query.id
-          });
+          
+      if (details.searchScholar) {
+        scholar.search(details.query)
+        .then(response => {
+          console.log(response);
+          // var processedResults = getProcessedResults(response.links);
+          // responsesForClient[socket.id].response = response;
+          // var incrementIndex = responsesForClient[socket.id].nextIndex;
+          // var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
+          //   return models.Result.create({
+          //     link: result.link,
+          //     description: result.description,
+          //     result_order: idx + incrementIndex,
+          //     title: result.title,
+          //     result_relevance: models.RELEVANCE.VOTE_NONE,
+          //     queryId: query.id
+          //   });
+          // });
+          // responsesForClient[socket.id].nextIndex +=processedResults.length
+          // Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
+          //   .then(function(sequelizeResults) {
+          //     console.log(response);
+          //     socket.emit('search-results', sequelizeResults);
+          //   });
         });
-        responsesForClient[socket.id].nextIndex +=processedResults.length
-        Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
-          .then(function(sequelizeResults) {
-            socket.emit('search-results', sequelizeResults);
-          });
-
-
-      });
+      }
+      else {
+        google(details.query, function(err, response) {
+          if (err) {
+            console.log(err)
+          } else {
+            // console.log(response);
+            console.log('search results for', details.query, response.links);
+            var processedResults = getProcessedResults(response.links);
+            responsesForClient[socket.id].response = response;
+            var incrementIndex = responsesForClient[socket.id].nextIndex;
+            var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
+              return models.Result.create({
+                link: result.link,
+                description: result.description,
+                result_order: idx + incrementIndex,
+                title: result.title,
+                result_relevance: models.RELEVANCE.VOTE_NONE,
+                queryId: query.id
+              });
+            });
+            responsesForClient[socket.id].nextIndex +=processedResults.length
+            Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
+              .then(function(sequelizeResults) {
+                socket.emit('search-results', sequelizeResults);
+              });
+          
+          } // end of else for no error 
+          
+        });
+      }   // end of lse block for details.searchScholar  
     }).catch(function(err) {
       console.log(err);
     });
   });
+
+
+
   socket.on('critisort', function(uid) {
 
     var details = 'user sorted the list';

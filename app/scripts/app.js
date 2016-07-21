@@ -18,7 +18,8 @@ angular
         'ngTouch',
         'ui.bootstrap',
         'btford.socket-io',
-        'angular-md5'
+        'angular-md5',
+        'toggle-switch'
     ])
 
 .factory('theSocket', function(socketFactory) {
@@ -44,11 +45,43 @@ angular
         })
         .when('/search', {
             templateUrl: 'views/search.html',
-            controller: 'SearchCtrl'
+            controller: 'SearchCtrl',
+            resolve: {
+                engine: function () {
+                    console.log('resolving engine for/search')
+                    return 'google';
+                }
+            }
         })
         .when('/search/:query', {
             templateUrl: 'views/search.html',
-            controller: 'SearchCtrl'
+            controller: 'SearchCtrl',
+            resolve: {
+                engine: function () {
+                    console.log('resolving engine for/search:query')
+                    return 'google';
+                }
+            }
+        })
+        .when('/scholar', {
+            templateUrl: 'views/search.html',
+            controller: 'SearchCtrl',
+            resolve: {
+                engine: function () {
+                    console.log('resolving engine for/scholar')
+                    return 'scholar';
+                }
+            }
+        })
+        .when('/scholar/:query', {
+            templateUrl: 'views/search.html',
+            controller: 'SearchCtrl',
+            resolve: {
+                engine: function () {
+                    console.log('resolving engine for/scholar:query')
+                    return 'scholar';
+                }
+            }
         })
         .when('/teacher', {
             templateUrl: 'views/teacher.html',

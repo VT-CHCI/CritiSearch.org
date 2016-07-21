@@ -11,8 +11,8 @@ angular.module('angularSocketNodeApp')
           // console.log(raw.scrollTop + raw.offsetHeight)
           // console.log(raw.scrollHeight)
           if (raw.scrollTop + raw.offsetHeight > raw.scrollHeight) {
-            console.log('I am at the bottom')
-            console.log(attrs.scrolly)
+            // console.log('I am at the bottom')
+            // console.log(attrs.scrolly)
             scope.$apply(attrs.scrolly)
           }
         })

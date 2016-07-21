@@ -1,7 +1,11 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('SearchCtrl', function ($scope, User, theSocket, $routeParams, $location, $anchorScroll) {
+  .controller('SearchCtrl', function ($scope, User, theSocket, $routeParams, $location, $anchorScroll, engine) {
+    console.log('engine',engine);
+    $scope.scholarOptions = {
+    };
+    $scope.scholarOptions.searchScholar = (engine === 'scholar');
     $scope.queryInProgress = '';
     $scope.query = '';
     $scope.loggedIn = User.studentLoggedIn();
@@ -10,9 +14,26 @@ angular.module('angularSocketNodeApp')
     $scope.originalOrder = true;
     var searchScope = $scope;
 
+    if ($routeParams.hasOwnProperty('query') 
+        && $routeParams.query.length > 0) {
+      $scope.queryInProgress = $routeParams.query;
+      $scope.query = $scope.queryInProgress;
+      $scope.search();
+    }
+    
+    $scope.$watch('scholarOptions.searchScholar', function (a,b,c) {
+      console.log('watch triggered')
+      console.log(a,b,c)
+    })
+
+
     $scope.searchSubmitted = function() {
       $scope.query = $scope.queryInProgress;
-      $location.path('/search/' + $scope.query);      
+      if ($scope.scholarOptions.searchScholar) {
+        $location.path('/scholar/' + $scope.query);      
+      } else {
+        $location.path('/search/' + $scope.query);      
+      }
     };
 
     $scope.logIn = function() {
@@ -31,15 +52,13 @@ angular.module('angularSocketNodeApp')
         console.log('no user', User);
       }
       details.query = $scope.query;
+      console.log ('details.searchScholar:' + $scope.scholarOptions.searchScholar);
+      details.searchScholar = $scope.scholarOptions.searchScholar;
       theSocket.emit('q', details);
     };
 
-    if ($routeParams.hasOwnProperty('query') 
-        && $routeParams.query.length > 0) {
-      $scope.queryInProgress = $routeParams.query;
-      $scope.query = $scope.queryInProgress;
-      $scope.search();
-    }
+   
+
 
     $scope.originalSort = function() {
       var newResults = [];
@@ -86,14 +105,19 @@ angular.module('angularSocketNodeApp')
       console.log($scope.results);
     }
 
+    $scope.nextLocked = false;
+
     $scope.nextResults = function () {
-      
-      console.log('loading more results');
-      theSocket.emit('load-more-results', $scope.userService.uid);      
+      if (!$scope.nextLocked) {
+        $scope.nextLocked = true;
+        console.log('loading more results');
+        theSocket.emit('load-more-results', $scope.userService.uid);      
+      }
     }
 
    
     theSocket.on('search-results', function(data) {
+      $scope.nextLocked = false;
       for (var i in data) {     
         var newurl = data[i].link.substring(7);        
         newurl = newurl.substring(0, newurl.indexOf('/'));        
