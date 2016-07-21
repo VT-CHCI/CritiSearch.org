@@ -1,9 +1,22 @@
 <li class="search-result" ng-mouseenter="showButtons()" ng-mouseleave="showButtons()" ng-class="{promoted: result.status==1, demoted:result.status==-1}">
-	<div class="like_dislike btn-group-vertical" style="display:none">
-			<button type="button" class="btn btn-success" ng-click="promote(result)"><i class="glyphicon glyphicon-thumbs-up"></i></button>
-  			<button type="button" class="btn btn-danger" ng-click="demote(result)"><i class="glyphicon glyphicon-thumbs-down"></i></button>
-	</div>
-  <a ng-href="{{result.link}}" target="_blank" ng-click="follow(result)">{{result.title}}</a>
-  <div><a class="link" ng-href="{{result.link}}" target="_blank" ng-click="follow(result)">{{result.newurl}}</a></div>
-  <p>{{result.description}}</p>
+  <div ng-if="!result.hasOwnProperty('scholar')">
+  	<div class="like_dislike btn-group-vertical" style="display:none">
+  			<button type="button" class="btn btn-success" ng-click="promote(result)"><i class="glyphicon glyphicon-thumbs-up"></i></button>
+    			<button type="button" class="btn btn-danger" ng-click="demote(result)"><i class="glyphicon glyphicon-thumbs-down"></i></button>
+  	</div>
+    <a ng-href="{{result.link}}" target="_blank" ng-click="follow(result)">{{result.title}}</a>
+    <div><a class="link" ng-href="{{result.link}}" target="_blank" ng-click="follow(result)">{{result.newurl}}</a></div>
+    <p>{{result.description}}</p>
+  </div>
+  <div ng-if="result.hasOwnProperty('scholar')">
+    <div class="like_dislike btn-group-vertical" style="display:none">
+        <button type="button" class="btn btn-success" ng-click="promote(result)"><i class="glyphicon glyphicon-thumbs-up"></i></button>
+          <button type="button" class="btn btn-danger" ng-click="demote(result)"><i class="glyphicon glyphicon-thumbs-down"></i></button>
+    </div>
+    <a ng-href="{{result.url}}" target="_blank" ng-click="follow(result)" ng-if="result.hasOwnProperty('url')">{{result.title}}</a>
+    <a target="_blank" ng-click="follow(result)" ng-if="!result.hasOwnProperty('url')">{{result.title}}</a>
+    <div><a class="link" ng-href="{{result.url}}" target="_blank" ng-click="follow(result)">{{result.newurl}}</a></div>
+    <p>{{result.description}}</p>
+    <p>{{result.citedCount}}</p>
+  </div>
 </li>

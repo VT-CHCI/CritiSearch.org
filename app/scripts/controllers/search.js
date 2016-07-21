@@ -14,6 +14,24 @@ angular.module('angularSocketNodeApp')
     $scope.originalOrder = true;
     var searchScope = $scope;
 
+
+    $scope.search = function() {
+      var details = {};
+      $scope.results = [];
+      if (User.getUserId() != '') {
+
+        details.userId = User.getUserId();
+        
+        details.group = User.getCurrentGroup();          
+      } else {
+        console.log('no user', User);
+      }
+      details.query = $scope.query;
+      console.log ('details.searchScholar:' + $scope.scholarOptions.searchScholar);
+      details.searchScholar = $scope.scholarOptions.searchScholar;
+      theSocket.emit('q', details);
+    };
+
     if ($routeParams.hasOwnProperty('query') 
         && $routeParams.query.length > 0) {
       $scope.queryInProgress = $routeParams.query;
@@ -38,23 +56,6 @@ angular.module('angularSocketNodeApp')
 
     $scope.logIn = function() {
       $location.path('/login/student');
-    };
-
-    $scope.search = function() {
-      var details = {};
-      $scope.results = [];
-      if (User.getUserId() != '') {
-
-        details.userId = User.getUserId();
-        
-        details.group = User.getCurrentGroup();          
-      } else {
-        console.log('no user', User);
-      }
-      details.query = $scope.query;
-      console.log ('details.searchScholar:' + $scope.scholarOptions.searchScholar);
-      details.searchScholar = $scope.scholarOptions.searchScholar;
-      theSocket.emit('q', details);
     };
 
    
@@ -115,12 +116,29 @@ angular.module('angularSocketNodeApp')
       }
     }
 
+    theSocket.on('search-results-scholar', function(data) {
+
+      console.log('Scholar Results:' + JSON.stringify(data));
+      $scope.nextLocked = false;
+      for (var i in data) {     
+        data[i].scholar = true;
+        var newurl = data[i].url;        
+        data[i].newurl = newurl;
+        data[i].status = 0;  
+      }
+      searchScope.results = searchScope.results.concat(data); 
+    });
+
    
     theSocket.on('search-results', function(data) {
       $scope.nextLocked = false;
       for (var i in data) {     
-        var newurl = data[i].link.substring(7);        
-        newurl = newurl.substring(0, newurl.indexOf('/'));        
+        console.log(data[i].link)   
+        // var newurl = data[i].link.substring(7);      
+        var newurl = data[i].link;      
+        // console.log(newurl)  
+        // newurl = newurl.substring(0, newurl.indexOf('/'));        
+        // console.log(newurl)    
         data[i].newurl = newurl;
         data[i].status = 0;  
       }

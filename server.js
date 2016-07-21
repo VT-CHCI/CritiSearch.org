@@ -66,6 +66,22 @@ models.start()
 
 //-------------------------------------------------------------------------
 
+// function for filtering Scholar Results. Do not know yet if it is required
+function getProcessedScholarResults(results) {
+
+  var resultsToSend = [];
+  for (var i = 0; i < results.length; i++) {
+    if (results[i].hasOwnProperty('url') && results[i].title.length > 0) {
+      results[i].status = 0;
+      resultsToSend.push(results[i]);
+    }
+  }
+  return resultsToSend;
+}
+  
+
+
+
 // filters out google's enhanced results
 function getProcessedResults(results) {
 
@@ -788,26 +804,29 @@ io.sockets.on('connection', function(socket) {
       if (details.searchScholar) {
         scholar.search(details.query)
         .then(response => {
-          console.log(response);
-          // var processedResults = getProcessedResults(response.links);
-          // responsesForClient[socket.id].response = response;
-          // var incrementIndex = responsesForClient[socket.id].nextIndex;
-          // var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
-          //   return models.Result.create({
-          //     link: result.link,
-          //     description: result.description,
-          //     result_order: idx + incrementIndex,
-          //     title: result.title,
-          //     result_relevance: models.RELEVANCE.VOTE_NONE,
-          //     queryId: query.id
-          //   });
-          // });
-          // responsesForClient[socket.id].nextIndex +=processedResults.length
-          // Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
-          //   .then(function(sequelizeResults) {
-          //     console.log(response);
-          //     socket.emit('search-results', sequelizeResults);
-          //   });
+          // console.log(response);
+           var processedResults = getProcessedScholarResults(response.results);
+           // console.log(JSON.stringify('processedResults' + processedResults));
+           responsesForClient[socket.id].response = response;
+           var incrementIndex = responsesForClient[socket.id].nextIndex;
+           var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
+             return models.Result.create({
+               link: result.url,
+               description: result.description,
+               result_order: idx + incrementIndex,
+               title: result.title,
+               result_relevance: models.RELEVANCE.VOTE_NONE,
+               queryId: query.id,
+               cited_count:result.citedCount,
+               cited_url:result.citedUrl,
+               related_url:result.relatedUrl
+             });
+           });
+           responsesForClient[socket.id].nextIndex +=processedResults.length
+           Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
+             .then(function(sequelizeResults) {
+               socket.emit('search-results-scholar', sequelizeResults);
+             });
         });
       }
       else {
@@ -816,11 +835,12 @@ io.sockets.on('connection', function(socket) {
             console.log(err)
           } else {
             // console.log(response);
-            console.log('search results for', details.query, response.links);
+            
             var processedResults = getProcessedResults(response.links);
             responsesForClient[socket.id].response = response;
             var incrementIndex = responsesForClient[socket.id].nextIndex;
             var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
+              
               return models.Result.create({
                 link: result.link,
                 description: result.description,
@@ -834,8 +854,7 @@ io.sockets.on('connection', function(socket) {
             Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
               .then(function(sequelizeResults) {
                 socket.emit('search-results', sequelizeResults);
-              });
-          
+              });          
           } // end of else for no error 
           
         });

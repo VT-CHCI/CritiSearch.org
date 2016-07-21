@@ -26,7 +26,10 @@ var Result = sequelize.define('result', {
   description: Sequelize.TEXT, 
   result_order: Sequelize.FLOAT(5,2), 
   title: Sequelize.STRING,
-  result_relevance: Sequelize.ENUM(RELEVANCE.VOTE_UP,RELEVANCE.VOTE_DOWN,RELEVANCE.VOTE_NONE)
+  result_relevance: Sequelize.ENUM(RELEVANCE.VOTE_UP,RELEVANCE.VOTE_DOWN,RELEVANCE.VOTE_NONE),
+  cited_count:Sequelize.STRING,
+  cited_url:Sequelize.STRING(2048),
+  related_url:Sequelize.STRING(2048)
 });
 
 // event types for teacher such as create class or view incoming queries to be added later
