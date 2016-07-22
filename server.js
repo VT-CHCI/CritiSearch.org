@@ -790,8 +790,23 @@ io.sockets.on('connection', function(socket) {
    */
 
   socket.on('load-more-results', function(data) {
-
-    // createevent in the database
+ 
+    
+    // create an event in the database when the user requuests for more results
+    models.Client.findOne({
+        where: {
+          socketid: socket.id
+        }
+      }).then(function(client) {
+        models.Event.create({
+          description: JSON.stringify('client with id :: ' + client.id + ' requested more results '),
+          type: models.EVENT_TYPE.MORE_RESULTS,
+          clientId: client.id,
+          queryId: responsesForClient[socket.id].query.id
+        });
+      });
+   
+    
     console.log('fetching more results for socketid::' + socket.id);
     console.log('fetching more results for uid::' + data.user);
     if (data.searchScholar) {
