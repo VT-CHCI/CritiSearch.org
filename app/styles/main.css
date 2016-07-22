@@ -75,7 +75,13 @@ body {
 
 .link {
     color: gray;
-    font-size: 10px;
+    font-size: 12px;
+}
+
+.link_scholar {
+    color: gray;
+    font-size: 12px;
+    margin-right: 20px;
 }
 
 .button-nav:hover {
