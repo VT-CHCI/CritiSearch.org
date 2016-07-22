@@ -1,7 +1,9 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('SearchCtrl', function ($scope, User, theSocket, $routeParams, $location, $anchorScroll, engine) {
+  .controller('SearchCtrl', function ($scope, 
+    User, theSocket, $routeParams, $location, 
+    $anchorScroll, engine,$timeout) {
     console.log('engine',engine);
     $scope.scholarOptions = {
     };
@@ -12,7 +14,10 @@ angular.module('angularSocketNodeApp')
     $scope.results = [];
     $scope.userService = User;
     $scope.originalOrder = true;
+    var NEXT_RESULTS_DELAY = 500; //or couldtry 1000 for a whole second
     var searchScope = $scope;
+
+    $scope.searchDisabled = false;
 
 
     $scope.search = function() {
@@ -109,10 +114,17 @@ angular.module('angularSocketNodeApp')
     $scope.nextLocked = false;
 
     $scope.nextResults = function () {
-      if (!$scope.nextLocked) {
+      if (!$scope.nextLocked && !$scope.searchDisabled) {
+        $scope.searchDisabled = true;
+        $timeout(function () {
+          searchScope.searchDisabled = false;
+        }, NEXT_RESULTS_DELAY);
         $scope.nextLocked = true;
         console.log('loading more results');
-        theSocket.emit('load-more-results', $scope.userService.uid);      
+        theSocket.emit('load-more-results', {
+          user: $scope.userService.uid,
+          searchScholar: $scope.scholarOptions.searchScholar
+        });      
       }
     }
 

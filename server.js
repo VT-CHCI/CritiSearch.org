@@ -34,6 +34,49 @@ google.requestOptions = {
     'DNT': 1
   }
 }
+
+let scholarResultsCallback = socket => {
+  return response => {
+    console.log('response');
+    var processedResults = getProcessedScholarResults(response.results);
+    console.log(processedResults.length)
+    // console.log(JSON.stringify('processedResults' + processedResults));
+    responsesForClient[socket.id].response = response;
+    console.log('responsesForClient[socket.id].response');
+    var incrementIndex = responsesForClient[socket.id].nextIndex;
+    console.log('increment')
+    var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
+      console.log(idx)
+      console.log(result)
+      console.log('map')
+      return models.Result.create({
+        link: result.url,
+        description: result.description,
+        result_order: idx + incrementIndex,
+        title: result.title,
+        result_relevance: models.RELEVANCE.VOTE_NONE,
+        queryId: responsesForClient[socket.id].query.id,
+        cited_count:result.citedCount,
+        cited_url:result.citedUrl,
+        related_url:result.relatedUrl
+      })
+        .catch(function (err){
+           console.log('error')
+           console.log(err)
+        });
+    });
+    responsesForClient[socket.id].nextIndex +=processedResults.length
+    Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
+      .then(function(sequelizeResults) {
+        console.log('aboutto emit')
+        socket.emit('search-results-scholar', sequelizeResults);
+      })
+       .catch(function (err){
+        console.log('error')
+        console.log(err)
+       });
+  };
+};
  
 
 
@@ -742,18 +785,32 @@ io.sockets.on('connection', function(socket) {
   })
 
 
-/**
+  /**
    * When the user searchesfor more results. First identify the query and client from the socket id, then load more results
    */
 
-  socket.on('load-more-results', function(uid) {
-    console.log('fetching more results for uid::' + socket.id);
-    if(responsesForClient &&
-      responsesForClient.hasOwnProperty(socket.id) &&
-      responsesForClient[socket.id].hasOwnProperty('response')&&
-      responsesForClient[socket.id].response.next) {
-    
-      responsesForClient[socket.id].response.next();
+  socket.on('load-more-results', function(data) {
+
+    // createevent in the database
+    console.log('fetching more results for socketid::' + socket.id);
+    console.log('fetching more results for uid::' + data.user);
+    if (data.searchScholar) {
+      if(responsesForClient &&
+        responsesForClient.hasOwnProperty(socket.id) &&
+        responsesForClient[socket.id].hasOwnProperty('response')&&
+        responsesForClient[socket.id].response.next) {
+      
+        responsesForClient[socket.id].response.next()
+          .then(scholarResultsCallback(socket));
+      }
+    } else {
+      if(responsesForClient &&
+        responsesForClient.hasOwnProperty(socket.id) &&
+        responsesForClient[socket.id].hasOwnProperty('response')&&
+        responsesForClient[socket.id].response.next) {
+      
+        responsesForClient[socket.id].response.next();
+      }
     }
   });
 
@@ -761,11 +818,15 @@ io.sockets.on('connection', function(socket) {
 
   // When the user searches for the first time
   socket.on('q', function(details) {
+      responsesForClient[socket.id] = {
+        nextIndex: 0
+      };
     console.log('details.searchScholar:' + details.searchScholar);      
     // create query in the database and log group details if any
     var createdQuery = models.Query.create({
       text: details.query,
     }).then(function(query) {
+      responsesForClient[socket.id].query = query;
       if (details.hasOwnProperty('userId')) {
         console.log("Loggin Group details: " + details);
         // socket.broadcast.to(details.group.id).emit('query', details.query);
@@ -797,37 +858,10 @@ io.sockets.on('connection', function(socket) {
         });
       });
 
-      responsesForClient[socket.id] = {
-        nextIndex: 0
-      };
           
       if (details.searchScholar) {
         scholar.search(details.query)
-        .then(response => {
-          // console.log(response);
-           var processedResults = getProcessedScholarResults(response.results);
-           // console.log(JSON.stringify('processedResults' + processedResults));
-           responsesForClient[socket.id].response = response;
-           var incrementIndex = responsesForClient[socket.id].nextIndex;
-           var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
-             return models.Result.create({
-               link: result.url,
-               description: result.description,
-               result_order: idx + incrementIndex,
-               title: result.title,
-               result_relevance: models.RELEVANCE.VOTE_NONE,
-               queryId: query.id,
-               cited_count:result.citedCount,
-               cited_url:result.citedUrl,
-               related_url:result.relatedUrl
-             });
-           });
-           responsesForClient[socket.id].nextIndex +=processedResults.length
-           Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
-             .then(function(sequelizeResults) {
-               socket.emit('search-results-scholar', sequelizeResults);
-             });
-        });
+        .then(scholarResultsCallback(socket));
       }
       else {
         google(details.query, function(err, response) {
