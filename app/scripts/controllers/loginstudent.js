@@ -1,14 +1,34 @@
 'use strict';
 
 angular.module('angularSocketNodeApp')
-  .controller('LogInStudentCtrl', function ($scope, User, md5, theSocket, $routeParams, $location) {
+  .controller('LogInStudentCtrl', function ($scope, User, md5, theSocket, $routeParams, $location,$cookies) {
     console.log(($scope));
+
+  var cookie = {
+    uid: $cookies.uid,
+    key: $cookies.key
+  }
+
+  if ($cookies.hasOwnProperty('key')) {
+    console.log('cookie has key::' + $cookies.key);
+    //cookie.key = md5.createHash($cookies.key.toString());
+     cookie.key = $cookies.key;
+    console.log('cookie hash created :: ' + cookie.key);
+  } else {
+    console.log('no hash created');
+    cookie.key = -1;
+  }
+
+  theSocket.emit('check-cookies', cookie);
+
+
 
   $scope.logIn = function() {
     console.log('Hello ' + $scope.sillyname);
     User.logInStudent($scope.sillyname);
     console.log('username is :'  +  User.getUserName());
   };
+
 
   $scope.errorMessage = '';
 
@@ -22,6 +42,7 @@ angular.module('angularSocketNodeApp')
     } else {
         User.setAuthenticated(true);
         console.log("loginstudent.js login success" )
+
 
       //make current session have a teacher???
       //something like that

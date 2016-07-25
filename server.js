@@ -367,8 +367,9 @@ io.sockets.on('connection', function(socket) {
             }).then(function(client) {
               client.userId = user.id;
               client.save();
-              console.log('cookie has key::' + cookie.key);
+              
               var cookiekey = getKey();
+              console.log('cookie has key::' + cookiekey);
               models.Cookie.create({
                 uid: user.id,
                 key: cookiekey
@@ -665,11 +666,18 @@ io.sockets.on('connection', function(socket) {
 
             socket.join(user.groupId);
               console.log('Logging user on student login::' + user);
+              var cookiekey = getKey();
+              console.log('cookie has key::' + cookiekey);
+                  models.Cookie.create({
+                    uid: user.id,
+                    key: cookiekey
+              });
               var studentObj = {
 
                 id: user.id,
                 name: user.name,
-                groupId: results[0].groupId
+                groupId: results[0].groupId,
+                cookiekey: cookiekey
               };
 
               io.to(studentObj.groupId).emit('login-student-alert', studentObj)

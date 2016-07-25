@@ -142,6 +142,8 @@ angular.module('angularSocketNodeApp')
       userService.studentAuthenticated = true;
       // userService.setGroup(data.groupId, false);
       userService.currentGroup.id=data.groupId;
+      $cookies.uid = data.id;
+      $cookies.key = data.cookiekey;
       $location.path('/search');
     }
   });
