@@ -116,6 +116,16 @@ angular.module('angularSocketNodeApp')
     $location.path('/teacher');
   })
 
+  theSocket.on('student-details-done', function(data) {
+    userService.username = data.username;
+    userService.uid = data.uid;
+    userService.authenticated = true;
+    $location.path('/search');
+  })
+
+
+
+
   theSocket.on('classes-loaded', function(results) {
     console.log("loading classes");
     console.log(results);
@@ -187,6 +197,26 @@ angular.module('angularSocketNodeApp')
     console.log($cookies.uid);
     theSocket.emit('teacher-details', $cookies.uid);
   })
+
+   theSocket.on('cookies-login-student', function(data) {
+    console.log('cookies returned::' + JSON.stringify(data));
+   
+
+    $cookies.uid = data.uid;
+    $cookies.key = data.key;
+
+    var cookie = {
+      uid: $cookies.uid,
+      key: $cookies.key
+    }
+    console.log("updating cookies for student... sending to server" + JSON.stringify(cookie));
+    theSocket.emit('update-cookies', cookie);
+    
+    console.log($cookies.uid);
+    theSocket.emit('student-details', $cookies.uid);
+  })
+
+
 
   theSocket.on('cookies-updated', function() {
     console.log('cookies updated');

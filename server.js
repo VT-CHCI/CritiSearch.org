@@ -58,7 +58,8 @@ let scholarResultsCallback = socket => {
         queryId: responsesForClient[socket.id].query.id,
         cited_count:result.citedCount,
         cited_url:result.citedUrl,
-        related_url:result.relatedUrl
+        related_url:result.relatedUrl,
+        link_visited: false
       })
         .catch(function (err){
            console.log('error')
@@ -488,6 +489,30 @@ io.sockets.on('connection', function(socket) {
       });
   });
 
+  socket.on('check-cookies-student', function(cookies) {
+    console.log('checking cookies for student');
+    console.log('logging cookies ::' + JSON.stringify(cookies));
+
+    models.Cookie.findOne({
+        where: {
+          key: cookies.key,
+          uid: cookies.uid
+        }
+      })
+      .then((cookieResults) => {
+        console.log('cookie results ::' + JSON.stringify(cookieResults));
+        if (cookieResults ) {
+          console.log('cookie matched');
+          socket.emit('cookies-login-student', {
+            uid: cookies.uid,
+            key: cookies.key
+          });
+        }
+      });
+  });
+
+
+
   socket.on('update-cookies', function(cookies) {
     console.log('update-cookies data recieved::' + JSON.stringify(cookies));
     models.Cookie.findOne({
@@ -532,6 +557,31 @@ io.sockets.on('connection', function(socket) {
       socket.emit('teacher-details-done', details);
     });
   });
+
+  socket.on('student-details', function(id) {
+    console.log('logging student id::' + id);
+    //connectionInfo['teacherId'] = id;
+    //  var teacherDetails = 'SELECT * FROM users WHERE id=?'; connection.query(teacherDetails, [id], function(error, results)
+    models.User.findOne({
+      where: {
+        id: id
+      }
+    }).then(function(results) {
+      console.log(JSON.stringify(results));
+
+
+      var details = {
+        username: results.name,
+        uid: results.id
+      }
+      console.log('student-details:: on cookie match :' + JSON.stringify(details));
+      //<sarang> getClasses(connectionInfo, socket);
+
+      socket.emit('student-details-done', details);
+    });
+  });
+
+
 
   /**
    * when the teacher creates a new class
@@ -750,7 +800,7 @@ io.sockets.on('connection', function(socket) {
   socket.on('demoted', function(result) {
 
     models.Result.findById(result.id)
-      .then(function(foundResult) {
+      .then(function(foundResult) {        
         models.Client.findOne({
           where: {
             socketid: socket.id
@@ -771,6 +821,9 @@ io.sockets.on('connection', function(socket) {
 
     models.Result.findById(result.id)
       .then(function(foundResult) {
+        console.log('changing link_visited to true');
+        foundResult.link_visited = true;
+        foundResult.save();
         models.Client.findOne({
           where: {
             socketid: socket.id
@@ -904,7 +957,8 @@ io.sockets.on('connection', function(socket) {
                 result_order: idx + incrementIndex,
                 title: result.title,
                 result_relevance: models.RELEVANCE.VOTE_NONE,
-                queryId: query.id
+                queryId: query.id,
+                link_visited: false
               });
             });
             responsesForClient[socket.id].nextIndex +=processedResults.length

@@ -19,7 +19,8 @@ angular.module('angularSocketNodeApp')
     cookie.key = -1;
   }
 
-  theSocket.emit('check-cookies', cookie);
+  theSocket.emit('check-cookies-student', cookie);
+
 
 
 
