@@ -121,6 +121,11 @@ var Group = sequelize.define('group', {
 });
 
 var Membership = sequelize.define('membership', {
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  }
 });
 
 // these area all sequelize fns

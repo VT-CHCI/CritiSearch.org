@@ -48,7 +48,7 @@ angular
             controller: 'SearchCtrl',
             resolve: {
                 engine: function () {
-                    console.log('resolving engine for/search')
+                    // console.log('resolving engine for/search')
                     return 'google';
                 }
             }
@@ -58,7 +58,7 @@ angular
             controller: 'SearchCtrl',
             resolve: {
                 engine: function () {
-                    console.log('resolving engine for/search:query')
+                    // console.log('resolving engine for/search:query')
                     return 'google';
                 }
             }
@@ -68,7 +68,7 @@ angular
             controller: 'SearchCtrl',
             resolve: {
                 engine: function () {
-                    console.log('resolving engine for/scholar')
+                    // console.log('resolving engine for/scholar')
                     return 'scholar';
                 }
             }
@@ -78,7 +78,7 @@ angular
             controller: 'SearchCtrl',
             resolve: {
                 engine: function () {
-                    console.log('resolving engine for/scholar:query')
+                    // console.log('resolving engine for/scholar:query')
                     return 'scholar';
                 }
             }
