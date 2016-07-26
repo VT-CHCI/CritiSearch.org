@@ -7,7 +7,7 @@ angular.module('angularSocketNodeApp')
     	},
 	    templateUrl: 'scripts/directives/navbar.html', 
 	    link: function(scope, iElement, iAttrs, controller) {
-	    	console.log($location.path());
+	    	// console.log($location.path());
 
 	    	scope.userService = User;
 

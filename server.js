@@ -915,10 +915,18 @@ io.sockets.on('connection', function(socket) {
             groupId: details.group.id
           }
         }).then(function(foundMembership) {
-          query.authorGroupId = foundMembership.id;
+          // console.log(foundMembership)
+          query.authorId = foundMembership.id;
           query.save();
         });
       }
+
+      var didScholarSearch = '';  // use this to change the event message when
+                                  // scholar search was performed
+
+      if (details.searchScholar) {
+        didScholarSearch = 'scholar-';
+      }                                  
 
       // Create an event for the client who fires the query
       models.Client.findOne({
@@ -927,7 +935,8 @@ io.sockets.on('connection', function(socket) {
         }
       }).then(function(client) {
         models.Event.create({
-          description: JSON.stringify('client with id :: ' + client.id + ' searched the link for ' + query.text),
+          description: JSON.stringify('client with id :: ' + client.id + ' ' +
+            didScholarSearch + 'searched the link for ' + query.text),
           type: models.EVENT_TYPE.SEARCH,
           clientId: client.id,
           queryId: query.id
@@ -936,10 +945,12 @@ io.sockets.on('connection', function(socket) {
 
           
       if (details.searchScholar) {
+        console.log('search scholar')
         scholar.search(details.query)
         .then(scholarResultsCallback(socket));
       }
       else {
+        console.log('search google')
         google(details.query, function(err, response) {
           if (err) {
             console.log(err)

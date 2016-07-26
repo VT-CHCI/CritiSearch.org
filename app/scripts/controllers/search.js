@@ -4,7 +4,7 @@ angular.module('angularSocketNodeApp')
   .controller('SearchCtrl', function ($scope, 
     User, theSocket, $routeParams, $location, 
     $anchorScroll, engine,$timeout) {
-    console.log('engine',engine);
+    // console.log('engine',engine);
     $scope.scholarOptions = {
     };
     $scope.scholarOptions.searchScholar = (engine === 'scholar');
@@ -45,8 +45,8 @@ angular.module('angularSocketNodeApp')
     }
     
     $scope.$watch('scholarOptions.searchScholar', function (a,b,c) {
-      console.log('watch triggered')
-      console.log(a,b,c)
+      // console.log('watch triggered')
+      // console.log(a,b,c)
     })
 
 
