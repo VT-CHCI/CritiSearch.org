@@ -5,16 +5,43 @@ angular.module('angularSocketNodeApp')
   .service('User', function (theSocket, md5, $location, $cookies, $cookieStore) {
   
   var userService = this;
-  this.username = '';
-  this.uid = '';
-  this.authenticated = false;
-  this.studentAuthenticated = false;
-  this.groups = [];
-  this.currentGroup = {
-    id: 0,
-    name: '',
-    students: []
+  // if a user is logged in get information about the user from the cookie else set all the information to blank
+  console.log('User service started');
+  if (!$cookies.hasOwnProperty('key')) {
+    console.log('data reset');    
+    this.username = '';
+    this.uid = '';
+    this.authenticated = false;
+    this.studentAuthenticated = false;
+    this.groups = [];
+    this.currentGroup = {
+      id: 0,
+      name: '',
+      students: []
+    }
   }
+  else
+  {
+    this.username = $cookies.username;
+    this.uid = $cookies.uid;
+    if($cookies.role == 'teacher')
+      {
+        this.authenticated = true;
+      }
+    else
+      {
+
+        this.studentAuthenticated = true; 
+      }
+    // question for Michael
+    this.groups = [];
+    this.currentGroup = {
+      id: 0,
+      name: '',
+      students: []
+    }
+   }
+
 
   this.addClass = function(className, number, classStudents) {
     userService.groups.push({
@@ -44,7 +71,14 @@ angular.module('angularSocketNodeApp')
   }
 
    this.setAuthenticated = function(value) {
+    
     userService.authenticated = value;
+  }
+
+  this.setStudentAuthenticated = function(value) {
+    
+    console.log('student logged in set to value::' + value);
+    userService.studentAuthenticated = value;
   }
 
   this.getUserId = function() {
@@ -70,8 +104,9 @@ angular.module('angularSocketNodeApp')
   };
 
   this.studentLoggedIn = function () {
-
-    return (userService.studentAuthenticated || userService.authenticated);
+    console.log('student logged is currently at value::' 
+      + userService.studentAuthenticated + '::' + userService.authenticated);
+    return (userService.studentAuthenticated);
   };
 
   this.getUserName = function() {
@@ -80,11 +115,13 @@ angular.module('angularSocketNodeApp')
   };
 
   this.logInTeacher = function(username, password) {
+    console.log("theSocket.emit('login-teacher', {username: username, password: password});")
     theSocket.emit('login-teacher', {username: username, password: password});
   };
 
   this.logInStudent = function(name) {
     console.log('inside login student');
+    console.log("theSocket.emit('login-student', {sillyname: name});")
     theSocket.emit('login-student', {sillyname: name});
   };
 
@@ -93,6 +130,7 @@ angular.module('angularSocketNodeApp')
   };
 
   theSocket.on('login-teacher-done', function(data){
+    console.log("theSocket.on('login-teacher-done', function(data){ ")
     console.log('login-teacher-done' + JSON.stringify(data));
     if (data.success) {
 
@@ -103,13 +141,17 @@ angular.module('angularSocketNodeApp')
 
       $cookies.uid = data.uid;
       $cookies.key = data.key;
+      $cookies.username = data.user.name;
+      $cookies.role = 'teacher';
       console.log('cookie info::' + $cookies.key);
+      console.log("theSocket.emit('update-cookies', {uid: data.uid, key: data.key})")
       theSocket.emit('update-cookies', {uid: data.uid, key: data.key})
       $location.path('/teacher');
     }
   });
 
   theSocket.on('teacher-details-done', function(data) {
+    console.log("theSocket.on('teacher-details-done', function(data) {  ")
     userService.username = data.username;
     userService.uid = data.uid;
     userService.authenticated = true;
@@ -117,6 +159,7 @@ angular.module('angularSocketNodeApp')
   })
 
   theSocket.on('student-details-done', function(data) {
+    console.log("theSocket.on('student-details-done', function(data) {  ")
     userService.username = data.username;
     userService.uid = data.uid;
     userService.authenticated = true;
@@ -127,6 +170,7 @@ angular.module('angularSocketNodeApp')
 
 
   theSocket.on('classes-loaded', function(results) {
+    console.log("theSocket.on('classes-loaded', function(results) { ")
     console.log("loading classes");
     console.log(results);
     var classes = [];
@@ -144,6 +188,7 @@ angular.module('angularSocketNodeApp')
   });
 
   theSocket.on('login-student-done', function(data){
+    console.log("theSocket.on('login-student-done', function(data){ ")
     console.log('success::', data);
     if (data.id) {
       console.log('inside login-student-done:: setting student data')
@@ -154,20 +199,24 @@ angular.module('angularSocketNodeApp')
       userService.currentGroup.id=data.groupId;
       $cookies.uid = data.id;
       $cookies.key = data.cookiekey;
+      $cookies.username = data.name;
+      $cookies.role = 'student';
       $location.path('/search');
     }
   });
 
   // logout all of the students
-  theSocket.on('logout', function() {
-    userService.username = '';
-    userService.uid = '';
-    userService.studentAuthenticated = false;
-    userService.currentGroup.id = 0;
-    $location.path('/search');
-  });
+  // theSocket.on('logout', function() {
+  //   console.log("theSocket.on('logout', function() {  ")
+  //   userService.username = '';
+  //   userService.uid = '';
+  //   userService.studentAuthenticated = false;
+  //   userService.currentGroup.id = 0;
+  //   $location.path('/search');
+  // });
 
   theSocket.on('class-created', function(name, groupId, students) {
+    console.log("theSocket.on('class-created', function(name, groupId, students) {  ")
     console.log(name, groupId, students);
     // var classStudents = [];
     // for (var i = 0; i < students.length; i++) {
@@ -181,6 +230,7 @@ angular.module('angularSocketNodeApp')
   });
 
   theSocket.on('cookies-login', function(data) {
+    console.log("theSocket.on('cookies-login', function(data) { ")
     console.log('cookies returned::' + JSON.stringify(data));
    
 
@@ -192,13 +242,16 @@ angular.module('angularSocketNodeApp')
       key: $cookies.key
     }
     console.log("updating cookies... sending to server" + JSON.stringify(cookie));
+    console.log("theSocket.emit('update-cookies', cookie);")
     theSocket.emit('update-cookies', cookie);
     
     console.log($cookies.uid);
+    console.log("theSocket.emit('teacher-details', $cookies.uid);")
     theSocket.emit('teacher-details', $cookies.uid);
   })
 
    theSocket.on('cookies-login-student', function(data) {
+    console.log("theSocket.on('cookies-login-student', function(data) { ")
     console.log('cookies returned::' + JSON.stringify(data));
    
 
@@ -210,26 +263,33 @@ angular.module('angularSocketNodeApp')
       key: $cookies.key
     }
     console.log("updating cookies for student... sending to server" + JSON.stringify(cookie));
+    console.log("theSocket.emit('update-cookies', cookie);")
     theSocket.emit('update-cookies', cookie);
     
     console.log($cookies.uid);
+    console.log("theSocket.emit('student-details', $cookies.uid);")
     theSocket.emit('student-details', $cookies.uid);
   })
 
 
 
   theSocket.on('cookies-updated', function() {
+    console.log("theSocket.on('cookies-updated', function() { ")
     console.log('cookies updated');
     console.log('uid: ' + $cookies.uid);
     console.log('key: ' + $cookies.key);
   })
 
-  this.logOutTeacher = function() {
+  this.logOut = function() {
     userService.username = '';
     userService.uid = '';
     userService.authenticated = false;
-    $cookies.uid = undefined;
-    $cookies.key = 0;
-    $location.path('/login/teacher');
+    userService.studentAuthenticated = false;
+    delete $cookies.uid;
+    delete $cookies.key;
+    delete $cookies.username;
+    delete $cookies.role ;
+    console.log('redirecting to login student')
+    $location.path('/login/student');
   }
 });

@@ -6,14 +6,18 @@
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li class="button-nav"><a href="#/teacher">Teacher</a>
-                </li>
-                <li class="button-nav"><a href="#/login/student">Student</a>
-                </li>
+                <li class="button-nav">user:{{userService.authenticated}} student:{{userService.studentAuthenticated}}</li>
             </ul>
 
             <ul class="nav navbar-nav navbar-right">
-                <li class="button-nav"><a href="#/teacher" ng-show="userService.authenticated" ng-click="logOut()">Logout {{userService.username}}</a>
+                <li class="button-nav"><a href="#/teacher" ng-show="userService.authenticated || userService.studentAuthenticated" ng-click="logOut()">Logout {{userService.username}}</a>
+                </li>
+                <li class="dropdown" ng-show="!userService.authenticated &&!userService.studentAuthenticated ">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="#/login/student">Login Student</a></li>
+                    <li><a href="#/login/teacher">Login Teacher</a></li>
+                  </ul>
                 </li>
             </ul>
         </div>

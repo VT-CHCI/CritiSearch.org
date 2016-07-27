@@ -11,7 +11,7 @@ angular.module('angularSocketNodeApp')
       console.log("teacher logged in");
     } else {
       console.log("Not logged in");
-      $location.path('/login/teacher');
+      $location.path('/search');
     }
 
     $scope.createClass = function() {

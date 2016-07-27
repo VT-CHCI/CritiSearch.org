@@ -2,34 +2,28 @@
 
 angular.module('angularSocketNodeApp')
   .controller('LogInStudentCtrl', function ($scope, User, md5, theSocket, $routeParams, $location,$cookies) {
-    console.log(($scope));
+    console.log($scope);
 
-  var cookie = {
-    uid: $cookies.uid,
-    key: $cookies.key
-  }
-
+  // debugger
   if ($cookies.hasOwnProperty('key')) {
+    var cookie = {
+      uid: $cookies.uid,
+      key: $cookies.key
+    }
     console.log('cookie has key::' + $cookies.key);
     //cookie.key = md5.createHash($cookies.key.toString());
      cookie.key = $cookies.key;
     console.log('cookie hash created :: ' + cookie.key);
+    theSocket.emit('check-cookies-student', cookie);
   } else {
     console.log('no hash created');
-    cookie.key = -1;
+    // cookie.key = -1;
   }
 
-  theSocket.emit('check-cookies-student', cookie);
-
-
-
-
   $scope.logIn = function() {
-    console.log('Hello ' + $scope.sillyname);
+  
     User.logInStudent($scope.sillyname);
-    console.log('username is :'  +  User.getUserName());
   };
-
 
   $scope.errorMessage = '';
 
@@ -41,14 +35,16 @@ angular.module('angularSocketNodeApp')
       $scope.errorMessage = results.message;
     
     } else {
-        User.setAuthenticated(true);
-        console.log("loginstudent.js login success" )
+      // successful case is noticed and handled by user service
+      
+      //   User.setStudentAuthenticated(true);
+      //   console.log("loginstudent.js login success" )
 
 
-      //make current session have a teacher???
-      //something like that
+      // //make current session have a teacher???
+      // //something like that
 
-      $location.path('/search');
+      // $location.path('/search');
      
     }
   });

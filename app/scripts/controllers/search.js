@@ -6,8 +6,8 @@ angular.module('angularSocketNodeApp')
     $anchorScroll, engine,$timeout) {
     // console.log('engine',engine);
     $scope.scholarOptions = {
+      searchScholar: engine === 'scholar'
     };
-    $scope.scholarOptions.searchScholar = (engine === 'scholar');
     $scope.queryInProgress = '';
     $scope.query = '';
     $scope.loggedIn = User.studentLoggedIn();
@@ -43,12 +43,6 @@ angular.module('angularSocketNodeApp')
       $scope.query = $scope.queryInProgress;
       $scope.search();
     }
-    
-    $scope.$watch('scholarOptions.searchScholar', function (a,b,c) {
-      // console.log('watch triggered')
-      // console.log(a,b,c)
-    })
-
 
     $scope.searchSubmitted = function() {
       $scope.query = $scope.queryInProgress;
@@ -58,13 +52,6 @@ angular.module('angularSocketNodeApp')
         $location.path('/search/' + $scope.query);      
       }
     };
-
-    $scope.logIn = function() {
-      $location.path('/login/student');
-    };
-
-   
-
 
     $scope.originalSort = function() {
       var newResults = [];

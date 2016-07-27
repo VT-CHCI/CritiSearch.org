@@ -319,6 +319,7 @@ io.sockets.on('connection', function(socket) {
    * out the updated number of connected students for the teacher view.
    */
   socket.on('disconnect', function() {
+    console.log("socket.on('disconnect', function()");
     let disconnectedAt = new Date();
     console.log('<< Client with id', socket.id, 'Disconnected at time', disconnectedAt, '<<');
 
@@ -339,6 +340,7 @@ io.sockets.on('connection', function(socket) {
    * Handle when someone tries to sign up
    */
   socket.on('signup', function(username, password, email, cookie) {
+    console.log("socket.on('signup', function(username, password, email, cookie)");
     console.log('Database add ' + username + ', ' + password + ', ' + email);
 
     var reason;
@@ -424,6 +426,7 @@ io.sockets.on('connection', function(socket) {
    * Handle when someone tries to Log in
    */
   socket.on('login-teacher', function(details) {
+    console.log("socket.on('login-teacher', function(details)");
     console.log('Searching for ' + details.username + ', ' + details.password);
 
     models.User.findOne({
@@ -468,7 +471,8 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('check-cookies', function(cookies) {
-    console.log('checking cookies');
+
+    console.log("socket.on('check-cookies', function(cookies)");
     console.log('logging cookies ::' + JSON.stringify(cookies));
 
     models.Cookie.findOne({
@@ -490,6 +494,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('check-cookies-student', function(cookies) {
+    console.log("socket.on('check-cookies-student', function(cookies)");
     console.log('checking cookies for student');
     console.log('logging cookies ::' + JSON.stringify(cookies));
 
@@ -514,6 +519,7 @@ io.sockets.on('connection', function(socket) {
 
 
   socket.on('update-cookies', function(cookies) {
+    console.log("socket.on('update-cookies', function(cookies)");
     console.log('update-cookies data recieved::' + JSON.stringify(cookies));
     models.Cookie.findOne({
         where: {
@@ -536,6 +542,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('teacher-details', function(id) {
+    console.log("socket.on('teacher-details', function(id)");
     console.log('logging teacher id::' + id);
     connectionInfo['teacherId'] = id;
     //  var teacherDetails = 'SELECT * FROM users WHERE id=?'; connection.query(teacherDetails, [id], function(error, results)
@@ -559,6 +566,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('student-details', function(id) {
+    console.log("socket.on('student-details', function(id)");
     console.log('logging student id::' + id);
     //connectionInfo['teacherId'] = id;
     //  var teacherDetails = 'SELECT * FROM users WHERE id=?'; connection.query(teacherDetails, [id], function(error, results)
@@ -587,6 +595,7 @@ io.sockets.on('connection', function(socket) {
    * when the teacher creates a new class
    */
   socket.on('create-class', function(name, number, userId) {
+    console.log("socket.on('create-class', function(name, number, userId)");
 
     // var newClassQuery = 'insert into critisearch_groups(name, owner) values (?, ?)';
     // create a group , 
@@ -653,6 +662,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('delete-class', function(id) {
+    console.log("socket.on('delete-class', function(id)");
     console.log("Deleting class " + id);
     var deleteQuery = 'DELETE FROM critisearch_role_memberships WHERE gid=?;';
     connection.query(deleteQuery, [id], function(error, results) {});
@@ -665,6 +675,7 @@ io.sockets.on('connection', function(socket) {
 
   // <Next To Do> when new students are added for each student create a membership association and pass on to the client side
   socket.on('add-students', function(classId, number) {
+    conole.log("socket.on('add-students', function(classId, number)");
   var addedStudents =  getNames(number, classId, connectionInfo.teacherId)
     Promise.all(addedStudents)
           .then(function(studentResults) {
@@ -685,6 +696,7 @@ io.sockets.on('connection', function(socket) {
 
   // Login student code
   socket.on('login-student', function(details) {
+    console.log("socket.on('login-student', function(details)");
     console.log('Searching for ' + details.sillyname);
 
     var newUser = models.User.findAll({
@@ -718,28 +730,36 @@ io.sockets.on('connection', function(socket) {
               console.log('Logging user on student login::' + user);
               var cookiekey = getKey();
               console.log('cookie has key::' + cookiekey);
-                  models.Cookie.create({
-                    uid: user.id,
-                    key: cookiekey
+                  models.Cookie.findOrCreate({
+                    where: {
+                        uid: user.id,
+                        
+                    },
+                    defaults:{
+                      key: cookiekey
+                    }
+              }).spread(function(cookie){
+                  console.log('we got here');
+                  var studentObj = {
+                    id: user.id,
+                    name: user.name,
+                    groupId: results[0].groupId,
+                    cookiekey: cookiekey
+                  };
+                  io.to(studentObj.groupId).emit('login-student-alert', studentObj)
+                  socket.emit('login-student-done', studentObj);
+                  models.Client.findOne({
+                    where: {
+                      socketid: socket.id
+                    }
+                  }).then(function(client) {
+                    client.userId = user.id;
+                    client.save();
+                  });
+              }).catch(function(err){
+                console.log('Error::' + JSON.stringify(err));
               });
-              var studentObj = {
-
-                id: user.id,
-                name: user.name,
-                groupId: results[0].groupId,
-                cookiekey: cookiekey
-              };
-
-              io.to(studentObj.groupId).emit('login-student-alert', studentObj)
-              socket.emit('login-student-done', studentObj);
-              models.Client.findOne({
-              where: {
-                socketid: socket.id
-              }
-            }).then(function(client) {
-              client.userId = user.id;
-              client.save();
-            });
+              
           } else { //this is for if the user DNE
             socket.emit('login-student-done', {
               success: false,
@@ -757,6 +777,7 @@ io.sockets.on('connection', function(socket) {
   // <Sarang m1> 
 
   socket.on('teacher', function(groupId) {
+    console.log("socket.on('teacher', function(groupId)");
     console.log('Teacher Joined', groupId);
     socket.join(groupId);
     
@@ -770,6 +791,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('info-for-server', function(msg) {
+    console.log("socket.on('info-for-server', function(msg)");
     console.log(msg.data);
   });
 
@@ -777,6 +799,7 @@ io.sockets.on('connection', function(socket) {
 
   // When a user promotes a query an event is logged in the event table with the query details, client details and the query result which was voted up 
   socket.on('promoted', function(result) {
+    console.log("socket.on('promoted', function(result)");
     models.Result.findById(result.id)
       .then(function(foundResult) {
         models.Client.findOne({
@@ -798,6 +821,7 @@ io.sockets.on('connection', function(socket) {
 
   // When a user promotes a query an event is logged in the event table with the query details, client details and the query result which was voted down
   socket.on('demoted', function(result) {
+    console.log("socket.on('demoted', function(result)");
 
     models.Result.findById(result.id)
       .then(function(foundResult) {        
@@ -818,6 +842,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('follow', function(result) {
+    console.log("socket.on('follow', function(result)");
 
     models.Result.findById(result.id)
       .then(function(foundResult) {
@@ -841,6 +866,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('log-out-class', function(classId) {
+    console.log("socket.on('log-out-class', function(classId)");
     socket.broadcast.to(classId).emit('logout');
     console.log('log out the entire class: ' + classId);
   })
@@ -851,6 +877,7 @@ io.sockets.on('connection', function(socket) {
    */
 
   socket.on('load-more-results', function(data) {
+    console.log("socket.on('load-more-results', function(data)");
  
     
     // create an event in the database when the user requuests for more results
@@ -894,6 +921,7 @@ io.sockets.on('connection', function(socket) {
 
   // When the user searches for the first time
   socket.on('q', function(details) {
+      console.log("socket.on('q', function(details)");
       responsesForClient[socket.id] = {
         nextIndex: 0
       };
@@ -989,7 +1017,7 @@ io.sockets.on('connection', function(socket) {
 
 
   socket.on('critisort', function(uid) {
-
+    console.log("socket.on('critisort', function(uid)");
     var details = 'user sorted the list';
     models.Event.create({
       description: JSON.stringify(details),

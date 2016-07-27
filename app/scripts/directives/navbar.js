@@ -16,28 +16,8 @@ angular.module('angularSocketNodeApp')
 	    	}
 
 	    	scope.logOut = function() {
-	    		User.logOutTeacher();
+	    		User.logOut();
 	    	}
-
-	    	// // remove all active classes
-	    	// $('nav li').removeClass('active');
-	    	// // add the active class if the location matches the page
-	    	// if ($('nav li').class == $(location.path)) {
-	    	// 	.addClass('active')
-	    	// }
-
-
-	    	// scope.linkFollowed = function($event) {
-	    	// 	console.log($event.target);
-	    	// 	//find all navbar li and remove active
-	    	// 	$('nav li').removeClass('active');
-
-	    	// 	//get target from event
-	    	// 	//find the target's first parent that is a li
-	    	// 	console.log($($event.target).closest('li'));
-	    	// 	//add active to this li
-	    	// 	$($event.target).closest('li').addClass('active');
-	    	// }
 	    }
     };
   });

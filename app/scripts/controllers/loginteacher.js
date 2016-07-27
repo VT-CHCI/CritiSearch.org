@@ -3,7 +3,7 @@
 angular.module('angularSocketNodeApp')
   .controller('LogInTeacherCtrl', function ($scope, User, md5, theSocket, $routeParams, $location, $cookieStore, $cookies) {
 
-  console.log("Login");
+  console.log("Login teacher");
 
   /*
   Check cookies to see if this person is already logged in.
@@ -26,12 +26,12 @@ angular.module('angularSocketNodeApp')
     //cookie.key = md5.createHash($cookies.key.toString());
      cookie.key = $cookies.key;
     console.log('cookie hash created :: ' + cookie.key);
+    theSocket.emit('check-cookies', cookie);
   } else {
     console.log('no hash created');
     cookie.key = -1;
   }
 
-  theSocket.emit('check-cookies', cookie);
 
   $scope.logIn = function() {
     console.log($scope.username);
