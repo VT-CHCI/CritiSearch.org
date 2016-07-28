@@ -16,8 +16,8 @@
     <a ng-class="{visited: result.link_visited}" ng-href="{{result.link}}" target="_blank" ng-click="follow(result)" ng-if="result.hasOwnProperty('link')">{{result.title}}</a>
     <a target="_blank" ng-click="follow(result)" ng-if="!result.hasOwnProperty('link')">{{result.title}}</a>
     <div><a class="link" ng-href="{{result.url}}" target="_blank" ng-click="follow(result)">{{result.newurl}}</a></div>
-    <div><a class="link_scholar" ng-href="{{result.cited_url}}" target="_blank" ng-click="follow(result)">Cited by {{result.cited_count}}</a>
-    <a class="link_scholar" ng-href="{{result.related_url}}" target="_blank" ng-click="follow(result)">Related Articles</a>
+    <div><a class="link_scholar" ng-href="{{returnLink(result,true)}}" target="_blank" ng-click="follow(result)">Cited by {{result.cited_count}}</a>
+    <a class="link_scholar" ng-href="{{returnLink(result,false)}}" target="_blank" ng-click="follow(result)">Related Articles</a>
     </div>
     <p>{{result.description}}</p>
   </div>

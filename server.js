@@ -863,6 +863,10 @@ io.sockets.on('connection', function(socket) {
           });
         });
       });
+      // scholar.search(result.query)
+      // .then(scholarResultsCallback(socket){
+      //   console.log(socket);
+      // });
   });
 
   socket.on('log-out-class', function(classId) {
