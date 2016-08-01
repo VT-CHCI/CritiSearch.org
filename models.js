@@ -8,7 +8,7 @@ var sequelize = new Sequelize(
   { logging: false }
 );
 
-var DROPTABLES = true;
+var DROPTABLES = false;
 
 
 if (process.env.CS_DROP === 'true') {
@@ -193,7 +193,182 @@ exports.start = function () {
                   where: {
                     email: 'sillyname@critisearch.org',
                     name: 'sillyname',
-                    password:'44e8cca84eae7121a2d48cb52bfc0ad5',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'deborah@critisearch.org',
+                    name: 'deborah',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'p1@critisearch.org',
+                    name: 'p1',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'p2@critisearch.org',
+                    name: 'p2',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'p3@critisearch.org',
+                    name: 'p3',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'p4@critisearch.org',
+                    name: 'p4',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'p5@critisearch.org',
+                    name: 'p5',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'p6@critisearch.org',
+                    name: 'p6',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'p7@critisearch.org',
+                    name: 'p7',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'p8@critisearch.org',
+                    name: 'p8',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'p9@critisearch.org',
+                    name: 'p9',
+                    role: 'participant'
+                  }
+                })
+                  .spread(function (studentResults) {
+                    return Membership.findOrCreate({
+                      where: {
+                        groupId: groupResults.id,
+                        userId: studentResults.id,
+                      }
+                    });
+                  }),
+
+                User.findOrCreate({
+                  where: {
+                    email: 'p10@critisearch.org',
+                    name: 'p10',
                     role: 'participant'
                   }
                 })

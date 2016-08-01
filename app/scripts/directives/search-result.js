@@ -10,7 +10,7 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
     link: function(scope, element, attrs) {
       scope.userService = User;
 
-      console.log('Hey ' + User.name);
+      // console.log('Hey ' + User.username);
       
       scope.showButtons = function() {
         element.find(".like_dislike").toggle();
@@ -60,7 +60,7 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
 
       scope.returnLink = function(result, cited){
         
-        console.log('cited::'+cited);
+        // console.log('cited::'+cited);
         if (cited){
           var end = result.cited_url.indexOf("&");
         // find the part of the cited url after the https://scholar.google.com/ {41 characters}
@@ -71,7 +71,7 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
           var start = result.related_url.indexOf("?");
           var end = result.related_url.indexOf("&");
           var queryToSend = result.related_url.substring(start+1,end);
-          console.log(queryToSend)
+          // console.log(queryToSend)
           return '/#/scholar/&'+ queryToSend;
         }
       }
