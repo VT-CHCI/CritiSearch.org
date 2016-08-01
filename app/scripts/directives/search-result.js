@@ -10,18 +10,18 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
     link: function(scope, element, attrs) {
       scope.userService = User;
 
-      console.log('Hey ' + User.name);
+      // console.log('Hey ' + User.name);
       
       scope.showButtons = function() {
         element.find(".like_dislike").toggle();
       };
       scope.promote = function(result) {
-        console.log("Promote:");
+        // console.log("Promote:");
        
         theSocket.emit('promoted', {id: result.id, uid: scope.userService.uid});
 
         if (result.status !== 1) {
-          console.log("status being set to 1");
+          // console.log("status being set to 1");
           result.status = 1;
         } else {
           console.log("status being set to 0");
@@ -29,7 +29,7 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
         }
       };
       scope.demote = function(result) {
-        console.log(result);
+        // console.log(result);
         theSocket.emit('demoted', {id: result.id, uid: scope.userService.uid});
         if (result.status !== -1) {
           result.status = -1;
@@ -60,7 +60,7 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
 
       scope.returnLink = function(result, cited){
         
-        console.log('cited::'+cited);
+
         if (cited){
           var end = result.cited_url.indexOf("&");
         // find the part of the cited url after the https://scholar.google.com/ {41 characters}
@@ -71,7 +71,7 @@ angular.module('angularSocketNodeApp').directive('searchResult', function (theSo
           var start = result.related_url.indexOf("?");
           var end = result.related_url.indexOf("&");
           var queryToSend = result.related_url.substring(start+1,end);
-          console.log(queryToSend)
+        
           return '/#/scholar/&'+ queryToSend;
         }
       }

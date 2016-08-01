@@ -921,7 +921,46 @@ io.sockets.on('connection', function(socket) {
     }
   });
 
-    
+
+  // <Michael> to find the latest query reslt
+  socket.on('saveResults', function(savedResults){
+   
+    var queryId = savedResults[0].queryId;
+    models.Client.findOne({
+        where: {
+          socketid: socket.id
+        }
+      }).then(function(client) {
+          
+              models.Event.create({
+              description: JSON.stringify('client with id :: ' + client.id + ' saved the results for query :: ' + queryId),
+              type: models.EVENT_TYPE.SAVE_RESULTS,
+              clientId: client.id,
+              queryId: queryId
+              }).then(function(event){
+
+              var historyCreatePromises = savedResults.map(function(result, idx) {
+              
+              return models.History.create({
+                  link: result.link,
+                  description: result.description,
+                  result_order: result.result_order,
+                  title: result.title,
+                  result_relevance: result.result_relevance,
+                  cited_count:result.cited_count,
+                  cited_url:result.cited_url,
+                  related_url:result.related_url,
+                  link_visited: result.link_visited,
+                  status:result.status,
+                  query_id: queryId,
+                  event_id: event.id
+                })   
+              }); 
+              socket.emit('resultsSaved');               
+            });            
+        });
+     });
+          
 
   // When the user searches for the first time
   socket.on('q', function(details) {

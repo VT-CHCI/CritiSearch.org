@@ -20,14 +20,58 @@
     </div>
     <div>
       <button type="button" class="btn btn-lg btn-primary critisort" data-toggle="button" ng-click="originalSort()" ng-show="!originalOrder">Original Order</button>
-    </div>
-
+    </div>   
   </div>
-  <div class="col-md-1"></div>
+  <div class="col-md-1"> 
+  </div>
 </div>
 <div class="row">
   <div class="col-md-1 last-column"></div>
   <div class="col-md-9"></div>
-  
-  <div class="col-md-1"></div>
+  <div class="col-md-1">    
+       <div>
+      <button type="button" class="btn btn-lg btn-primary critisort"  ng-click="saveSort()" ng-show="results.length > 0">Save Results</button>
+    </div>
+  </div>
+  <div class="col-md-1"> </div>
+</div>
+<div class="row">
+  <div class="col-md-1 last-column"></div>
+  <div class="col-md-9"></div>
+  <div class="col-md-1">    
+       <div class="panel-body">
+          <button type="button" data-toggle="modal" data-target="#myModal" class="btn btn-primary">View Saved</button>
+      </div>
+  <div class="col-md-1"> </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade add-class-modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel">Load previous saved results</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal" role="form">
+          <div class="form-group">
+          
+            <div class="saved-queries">
+              <!-- <teacher-queries queries="queries"></teacher-queries> -->
+              <ul>
+                <li class="saved-queries" ng-repeat="query in savedQueries">{{query}}</li>
+              </ul>
+
+            </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="loadSavedQuery()">Load Results</button>
+      </div>
+    </div>
+  </div>
 </div>

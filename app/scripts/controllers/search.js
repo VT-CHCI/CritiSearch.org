@@ -12,6 +12,7 @@ angular.module('angularSocketNodeApp')
     $scope.query = '';
     $scope.loggedIn = User.studentLoggedIn();
     $scope.results = [];
+    $scope.savedQueries = [];
     $scope.userService = User;
     $scope.originalOrder = true;
     var NEXT_RESULTS_DELAY = 500; //or couldtry 1000 for a whole second
@@ -62,6 +63,30 @@ angular.module('angularSocketNodeApp')
       searchScope.results = newResults;
       $scope.originalOrder = true;
     }
+
+    $scope.saveSort = function(){
+
+      var savedResults =[];
+      $scope.savedQueries
+      for (var i in searchScope.results){
+
+        savedResults [i] = searchScope.results[i];
+        
+      }
+      $scope.savedQueries = $scope.savedQueries.concat($scope.query +"::" + $scope.savedQueries.length );
+      console.log("inside::"+$scope.savedQueries.length);
+      theSocket.emit('saveResults',savedResults);
+
+    }
+
+    theSocket.on('resultsSaved',function(){
+
+      
+        console.log($scope.savedQueries);
+    
+      
+    })
+
 
     $scope.critiSort = function() {
       //$location.hash('search');
@@ -117,7 +142,6 @@ angular.module('angularSocketNodeApp')
 
     theSocket.on('search-results-scholar', function(data) {
 
-      console.log('Scholar Results:' + JSON.stringify(data));
       $scope.nextLocked = false;
       for (var i in data) {     
         data[i].scholar = true;

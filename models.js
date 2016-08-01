@@ -33,6 +33,22 @@ var Result = sequelize.define('result', {
   link_visited:Sequelize.BOOLEAN  
 });
 
+var History = sequelize.define('history', {
+  link: Sequelize.STRING(2048), 
+  description: Sequelize.TEXT, 
+  result_order: Sequelize.FLOAT(5,2), 
+  title: Sequelize.STRING,
+  result_relevance: Sequelize.ENUM(RELEVANCE.VOTE_UP,RELEVANCE.VOTE_DOWN,RELEVANCE.VOTE_NONE),
+  cited_count:Sequelize.STRING,
+  cited_url:Sequelize.STRING(2048),
+  related_url:Sequelize.STRING(2048),
+  link_visited:Sequelize.BOOLEAN,
+  status:Sequelize.STRING,
+  query_id:Sequelize.STRING,
+  event_id: Sequelize.STRING 
+});
+
+
 // event types for teacher such as create class or view incoming queries to be added later
 
 let EVENT_TYPE = {
@@ -44,13 +60,14 @@ let EVENT_TYPE = {
   LOGIN:'login',
   FOLLOW: 'follow',
   SEARCH: 'search',
-  MORE_RESULTS: 'more_resul'
+  MORE_RESULTS: 'more_results',
+  SAVE_RESULTS:'save_results'
 };
 
 // how do we log events such as EVENT_TYPE.SEARCH and EVENT_TYPE.FOLLOW
 var Event = sequelize.define('event', { 
   description: Sequelize.TEXT, 
-  type: Sequelize.ENUM(EVENT_TYPE.VOTE_UP,EVENT_TYPE.VOTE_DOWN, EVENT_TYPE.CRITISORT,EVENT_TYPE.MORE_RESULTS,EVENT_TYPE.ORIGINALSORT, EVENT_TYPE.LOGOUT, EVENT_TYPE.LOGIN, EVENT_TYPE.FOLLOW, EVENT_TYPE.SEARCH)
+  type: Sequelize.ENUM(EVENT_TYPE.VOTE_UP,EVENT_TYPE.VOTE_DOWN, EVENT_TYPE.CRITISORT,EVENT_TYPE.MORE_RESULTS,EVENT_TYPE.SAVE_RESULTS,EVENT_TYPE.ORIGINALSORT, EVENT_TYPE.LOGOUT, EVENT_TYPE.LOGIN, EVENT_TYPE.FOLLOW, EVENT_TYPE.SEARCH)
 });
 
 
@@ -141,6 +158,7 @@ Query.belongsTo(Membership, {as: 'author'});
 
 exports.ROLES = ROLES;
 exports.Result = Result;
+exports.History = History;
 exports.Client = Client;
 exports.Cookie = Cookie;
 exports.User = User;
