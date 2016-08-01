@@ -13,7 +13,7 @@
                 <li class="button-nav"><a href="#/teacher" ng-show="userService.authenticated || userService.studentAuthenticated" ng-click="logOut()">Logout {{userService.username}}</a>
                 </li>
                 <li class="dropdown" ng-show="!userService.authenticated &&!userService.studentAuthenticated ">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+                  <a href="#" class="dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
                   <ul class="dropdown-menu">
                     <li><a href="#/login/student">Login Student</a></li>
                     <li><a href="#/login/teacher">Login Teacher</a></li>
