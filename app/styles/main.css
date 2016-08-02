@@ -216,3 +216,6 @@ img.add-class {
     overflow: scroll;
     height:100%;
 }
+.toggle-switch {
+    min-width: 115px;
+}
