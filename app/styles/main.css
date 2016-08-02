@@ -219,3 +219,8 @@ img.add-class {
 .toggle-switch {
     min-width: 115px;
 }
+
+.search-result a:visited {
+    color: #aa00ff;
+    text-decoration: underline;
+}
