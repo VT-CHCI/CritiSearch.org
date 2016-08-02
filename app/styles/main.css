@@ -220,7 +220,7 @@ img.add-class {
     min-width: 115px;
 }
 
-.search-result a:visited {
+.search-result a.visited {
     color: #aa00ff;
     text-decoration: underline;
 }
