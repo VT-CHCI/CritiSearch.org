@@ -1,5 +1,5 @@
-'use strict';
-angular.module('angularSocketNodeApp').directive('searchResults', function ($window){
+'use strict'
+angular.module('angularSocketNodeApp').directive('searchResults', function ($window) {
   return {
     restrict: 'E',
     replace: true,
@@ -8,14 +8,14 @@ angular.module('angularSocketNodeApp').directive('searchResults', function ($win
       results: '=',
       nextResults: '='
     },
-    link: function(scope, element, attrs) {
-      const HEIGHT_OFFSET = 10;
+    link: function (scope, element, attrs) {
+      let HEIGHT_OFFSET = 10
       scope.restOfPageHeight = function () {
         // console.log('called restOfPageHeight')
-        let ulHeight = $window.innerHeight - element[0].getBoundingClientRect().top - HEIGHT_OFFSET;
+        let ulHeight = $window.innerHeight - element[0].getBoundingClientRect().top - HEIGHT_OFFSET
         // console.log(ulHeight)
         return { height: ulHeight + 'px' }
       }
     }
-  };
-});
+  }
+})
