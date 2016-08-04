@@ -1,33 +1,23 @@
 <div class="row">
-  <div class="col-md-1 last-column">
-    <div>
-      <toggle-switch
-           ng-model="scholarOptions.searchScholar"
-          knob-label="Scholar">
-      </toggle-switch>
+    <!-- <div class="col-sm-2 last-column">
+    </div> -->
+    <div class="col-sm-10">
+        <form role="form" id="search" ng-submit="searchSubmitted()">
+            <label class="sr-only" for="search-query">Search Query</label>
+            <input type="text" class="input-lg form-control main-search-query" id="search-query" placeholder="Search Query" ng-model="queryInProgress">
+        </form>
+        <search-results results="results" next-results="nextResults"></search-results>
     </div>
-  </div>
-  <div class="col-md-9">
-    <form role="form" id="search" ng-submit="searchSubmitted()">
-      <label class="sr-only" for="search-query">Search Query</label>
-        <input type="text" class="input-lg form-control main-search-query" id="search-query" placeholder="Search Query" ng-model="queryInProgress">
-    </form>
-    <search-results results="results" next-results="nextResults"></search-results>
-  </div>
-  <div class="col-md-1 last-column">
-    <div>
-      <button type="button" class="btn btn-lg btn-primary critisort" data-toggle="button" ng-click="critiSort()" ng-show="results.length > 0">CritiSORT</button>
+    <div class="col-sm-2 last-column">
+        <div>
+            <toggle-switch ng-model="scholarOptions.searchScholar" knob-label="Scholar">
+            </toggle-switch>
+        </div>
+        <div>
+            <button type="button" class="btn btn-lg btn-primary critisort" data-toggle="button" ng-click="critiSort()" ng-show="results.length > 0">CritiSORT</button>
+        </div>
+        <div>
+            <button type="button" class="btn btn-lg btn-primary critisort" data-toggle="button" ng-click="originalSort()" ng-show="!originalOrder">Original Order</button>
+        </div>
     </div>
-    <div>
-      <button type="button" class="btn btn-lg btn-primary critisort" data-toggle="button" ng-click="originalSort()" ng-show="!originalOrder">Original Order</button>
-    </div>
-
-  </div>
-  <div class="col-md-1"></div>
-</div>
-<div class="row">
-  <div class="col-md-1 last-column"></div>
-  <div class="col-md-9"></div>
-  
-  <div class="col-md-1"></div>
 </div>
