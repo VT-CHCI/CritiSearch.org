@@ -215,6 +215,8 @@ img.add-class {
     position: absolute;
     overflow: scroll;
     height:100%;
+    width: 100vw;
+    left: 0;
 }
 .toggle-switch {
     min-width: 115px;
@@ -223,4 +225,17 @@ img.add-class {
 .search-result a.visited {
     color: #aa00ff;
     text-decoration: underline;
+}
+
+@media (max-width: 1024px) {
+    .search-result {
+        padding-left: 40px;
+    }
+    .search-result .like_dislike {
+        display: inherit ! important;
+        float: left;
+        right: inherit;
+        left: 6px;
+        top: 20px;
+    }
 }
