@@ -9,10 +9,10 @@ angular.module('angularSocketNodeApp').directive('searchResults', function ($win
       nextResults: '='
     },
     link: function (scope, element, attrs) {
-      let HEIGHT_OFFSET = 10
+      var HEIGHT_OFFSET = 10
       scope.restOfPageHeight = function () {
         // console.log('called restOfPageHeight')
-        let ulHeight = $window.innerHeight - element[0].getBoundingClientRect().top - HEIGHT_OFFSET
+        var ulHeight = $window.innerHeight - element[0].getBoundingClientRect().top - HEIGHT_OFFSET
         // console.log(ulHeight)
         return { height: ulHeight + 'px' }
       }
