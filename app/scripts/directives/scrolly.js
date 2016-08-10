@@ -7,9 +7,9 @@ angular.module('angularSocketNodeApp')
         // console.log('loading directive')
 
         element.bind('scroll', function () {
-          // console.log('in scroll')
-          // console.log(raw.scrollTop + raw.offsetHeight)
-          // console.log(raw.scrollHeight)
+          console.log('in scroll')
+          console.log(raw.scrollTop + raw.offsetHeight)
+          console.log(raw.scrollHeight)
           if (raw.scrollTop + raw.offsetHeight > raw.scrollHeight) {
             // console.log('I am at the bottom')
             // console.log(attrs.scrolly)
