@@ -90,8 +90,11 @@ body {
 .search-result {
     border: 2px solid transparent;
     border-radius: 7px;
-    padding: 10px;
-    margin: 3px;
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-left: 50px;
+    margin: 13px;
     position: relative;
 }
 .search-result:hover {
@@ -114,8 +117,8 @@ input.main-search-query {
     float: right;
     margin: -10px;
     position: absolute;
-    right: 10px;
-    top: 10px;
+    left: 10px;    
+    top: 30px;
 }
 .critisort {
     position: fixed;
