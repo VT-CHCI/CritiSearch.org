@@ -1,5 +1,6 @@
 'use strict';
 
+
 //-------------------------------------------------------------------------
 /**
  *  The server file for the Critisearch app, handles client interaction
@@ -15,25 +16,26 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http); // api docs: http://socket.io
-var google = require('google'); // api docs: https://www.npmjs.com/package/google
+const  googleIt = require('google-it')
+// var google = require('google'); // api docs: https://www.npmjs.com/package/google
 // var async = require('async');  //probbaly shouldn't need this now with promises
 var models = require('./models');
 var _ = require('lodash');
 'use strict' 
 var scholar = require('google-scholar');
 
-google.requestOptions = {
-  timeout: 30000,
-  gzip: true,
-  headers: {
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Encoding': 'gzip, deflate',
-    'Accept-Language': 'en;q=0.5',
-    'Cache-Control': 'max-age=0',
-    'Connection': 'keep-alive',
-    'DNT': 1
-  }
-}
+// google.requestOptions = {
+//   timeout: 30000,
+//   gzip: true,
+//   headers: {
+//     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+//     'Accept-Encoding': 'gzip, deflate',
+//     'Accept-Language': 'en;q=0.5',
+//     'Cache-Control': 'max-age=0',
+//     'Connection': 'keep-alive',
+//     'DNT': 1
+//   }
+// }
 
 let scholarResultsCallback = socket => {
   return response => {
@@ -82,7 +84,7 @@ let scholarResultsCallback = socket => {
 
 
 // Limit the results per page for testing
-google.resultsPerPage = 10;
+// google.resultsPerPage = 10;
 // This dictionary holds the respone object for the search results for a client using the socket id
 var responsesForClient= {};
 /**
@@ -128,6 +130,7 @@ function getProcessedScholarResults(results) {
 
 // filters out google's enhanced results
 function getProcessedResults(results) {
+  //each results[i] shoudl have title,link,snippet
 
   var resultsToSend = [];
   for (var i = 0; i < results.length; i++) {
@@ -147,7 +150,7 @@ function getProcessedResults(results) {
       resultsToSend.pop();
     } else if (results[i].hasOwnProperty('link') && results[i].link != null) {
       if (results[i].link.substr(0, youtube.length) == youtube) {
-        results[i].description = "Youtube link";
+        results[i].snippet = "Youtube link";
       }
     }
     // for now just remove these
@@ -983,13 +986,13 @@ io.sockets.on('connection', function(socket) {
       }
       else {
         console.log('search google')
-        google(details.query, function(err, response) {
-          if (err) {
-            console.log(err)
-          } else {
-            // console.log(response);
+        googleIt({query:details.query})
+          .then(response => {
+            // var response = {}
+
+            console.log(response);
             
-            var processedResults = getProcessedResults(response.links);
+            var processedResults = getProcessedResults(response);
             responsesForClient[socket.id].response = response;
             var incrementIndex = responsesForClient[socket.id].nextIndex;
             var arrayOfPromisesForEachCreatedResultInSequelize = processedResults.map(function(result, idx) {
@@ -1008,10 +1011,16 @@ io.sockets.on('connection', function(socket) {
             Promise.all(arrayOfPromisesForEachCreatedResultInSequelize)
               .then(function(sequelizeResults) {
                 socket.emit('search-results', sequelizeResults);
-              });          
-          } // end of else for no error 
+              });  
+
+          }) 
+          .catch(err => {
+            if (err) {
+              console.log(err)
+            }
+          })
           
-        });
+                    
       }   // end of lse block for details.searchScholar  
     }).catch(function(err) {
       console.log(err);
